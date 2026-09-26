@@ -7,7 +7,7 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7", "cryptography>=
 
 [project.optional-dependencies]
 # the SO-101 desk rig (HARDWARE.md). The real arm also needs: pip install 'lerobot[feetech]'
-rig = ["opencv-contrib-python-headless>=4.8"]
+rig = ["opencv-contrib-python-headless>=4.8,<5"]  # OpenCV 5 changes the aruco API and breaks the rig fit
 
 [project.scripts]
 kintrace = "kintrace.cli:main"

@@ -4,7 +4,7 @@ __pycache__/
 build/
 dist/
 .venv/
-demo/
+/demo/
 kintrace_ledger.jsonl
 keys/
 *.pem
