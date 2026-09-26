@@ -1,0 +1,42 @@
+  crash            done (37s)
+  tcp_edit         done (74s)
+  joint_service    done (109s)
+  software_update  done (133s)
+  healthy          done (156s)
+{
+  "crash": {
+    "n": 10,
+    "cause_ok": 10,
+    "status_ok": 10,
+    "when_median_s": 0.009659676171883902,
+    "when_max_s": 0.0921675278973062
+  },
+  "tcp_edit": {
+    "n": 10,
+    "cause_ok": 10,
+    "status_ok": 10,
+    "when_median_s": 0.20000000000000195,
+    "when_max_s": 0.2000000000000064
+  },
+  "joint_service": {
+    "n": 10,
+    "cause_ok": 10,
+    "status_ok": 10,
+    "when_median_s": 0.026217738087277453,
+    "when_max_s": 0.07368493745018512
+  },
+  "software_update": {
+    "n": 10,
+    "cause_ok": 10,
+    "status_ok": 10,
+    "when_median_s": 2.2500000000000027,
+    "when_max_s": 2.9000000000000004
+  },
+  "healthy": {
+    "n": 10,
+    "cause_ok": 10,
+    "status_ok": 10,
+    "when_median_s": null,
+    "when_max_s": null
+  }
+}

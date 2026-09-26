@@ -1,0 +1,826 @@
+{
+  "summary": {
+    "camera_sag": {
+      "n": 10,
+      "warned": 10,
+      "warned_before_first_miss": 9,
+      "picks_missed_in_log": 10,
+      "cause_right": 10,
+      "median_lead_s": 52.09175766374953,
+      "min_lead_s": -9.420768719601341,
+      "median_lead_share": 0.5733439440767478,
+      "median_warn_mm": 2.456652220501124,
+      "median_error_at_first_miss_mm": 5.8633495421201145,
+      "median_eta_error_s": 6.2532288281948425,
+      "median_abs_eta_error_s": 13.713055629819245,
+      "drift_speed_pick_mm_per_min": [
+        3.85,
+        3.99,
+        4.47,
+        5.18,
+        3.31,
+        4.42,
+        3.88,
+        4.14,
+        4.07,
+        4.42
+      ]
+    },
+    "joint_creep": {
+      "n": 10,
+      "warned": 10,
+      "warned_before_first_miss": 10,
+      "picks_missed_in_log": 10,
+      "cause_right": 10,
+      "median_lead_s": 47.35394592279849,
+      "min_lead_s": 17.88825082026193,
+      "median_lead_share": 0.5501442321115081,
+      "median_warn_mm": 2.5487819741878734,
+      "median_error_at_first_miss_mm": 7.173877758850715,
+      "median_eta_error_s": 9.83481322654574,
+      "median_abs_eta_error_s": 14.847659758539791,
+      "drift_speed_pick_mm_per_min": [
+        3.66,
+        4.37,
+        3.91,
+        8.38,
+        4.8,
+        5.69,
+        4.24,
+        4.89,
+        5.43,
+        9.01
+      ]
+    },
+    "healthy": {
+      "n": 10,
+      "false_alarms": 0,
+      "windows": 230,
+      "missed_picks": 0
+    },
+    "settings": {
+      "window_s": 10.0,
+      "warn_at": 0.15,
+      "fail_at": 0.7,
+      "tol_mm": [
+        8.0,
+        15.0
+      ],
+      "n_picks": 60,
+      "seconds": 149.8,
+      "note": "Simulated cell. Drift is sped up so the tolerance is used up 100-160 s after the drift starts. Real sag and creep are far slower. Lead time scales with the drift rate, so also read it as a share of the time from drift start to first miss, and as mm of error when the warning fires."
+    }
+  },
+  "rows": [
+    {
+      "kind": "camera_sag",
+      "seed": 0,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 25.395734275277405,
+        "rotvec_rate": [
+          5.1070044074933296e-05,
+          1.3446067167336192e-05,
+          0.0
+        ],
+        "translation_rate": [
+          5.500492101965943e-07,
+          -2.808810167522638e-06,
+          -1.558246394113449e-05
+        ],
+        "pick_mm_per_min": 3.849722891896087,
+        "deg_per_min": 0.18154903515453524,
+        "fail_s": 138.21770123928727
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 115.19999999999989,
+      "warned": true,
+      "warn_s": 60.056268571091444,
+      "cause": "camera_sag",
+      "health": 78.5,
+      "eta_s": 74.71626589547631,
+      "warn_mm": 1.837524180737583,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 55.143731428908445,
+      "lead_share": 0.6140435644553994,
+      "eta_err_s": 19.57253446656786,
+      "miss_mm": 5.7610895881774855
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 1,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 39.0092739265187,
+        "rotvec_rate": [
+          2.917738710708856e-05,
+          3.720790478471659e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -5.611335468867959e-06,
+          3.898420975921748e-06,
+          -1.2431112454973881e-05
+        ],
+        "pick_mm_per_min": 3.993140379899049,
+        "deg_per_min": 0.16254938012154788,
+        "fail_s": 130.70929748201542
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 150.2999999999999,
+      "warned": true,
+      "warn_s": 80.05068409405388,
+      "cause": "camera_sag",
+      "health": 70.3,
+      "eta_s": 48.61896613616761,
+      "warn_mm": 2.45460785681629,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 70.24931590594602,
+      "lead_share": 0.6312234485698562,
+      "eta_err_s": -21.630349769778405,
+      "miss_mm": 7.404779628901396
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 2,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 25.969822868282467,
+        "rotvec_rate": [
+          2.5920733423819563e-05,
+          -6.07078599135511e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -1.2925278242149853e-05,
+          9.527761395266736e-06,
+          -1.1589586966063885e-05
+        ],
+        "pick_mm_per_min": 4.472982795342574,
+        "deg_per_min": 0.22692588766826807,
+        "fail_s": 115.69672805495898
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 99.59999999999992,
+      "warned": true,
+      "warn_s": 60.044499730603526,
+      "cause": "camera_sag",
+      "health": 73.4,
+      "eta_s": 47.65159309398862,
+      "warn_mm": 2.177387898239071,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 39.5555002693964,
+      "lead_share": 0.5372185944716027,
+      "eta_err_s": 8.096092824592219,
+      "miss_mm": 5.488668407832501
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 3,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 24.736210131921993,
+        "rotvec_rate": [
+          2.2035878964048645e-05,
+          -6.601599132470735e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -3.2724945038028353e-06,
+          -2.6089672722775394e-06,
+          -2.0455225884891815e-05
+        ],
+        "pick_mm_per_min": 5.175309656621589,
+        "deg_per_min": 0.23925559411377192,
+        "fail_s": 105.13895002861746
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 115.19999999999989,
+      "warned": true,
+      "warn_s": 60.06509788531528,
+      "cause": "camera_sag",
+      "health": 71.0,
+      "eta_s": 48.92288329292436,
+      "warn_mm": 2.5998213658325726,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 55.13490211468461,
+      "lead_share": 0.6094692936818928,
+      "eta_err_s": -6.212018821760253,
+      "miss_mm": 7.801055537264339
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 4,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 30.22655105628723,
+        "rotvec_rate": [
+          4.898651947795846e-05,
+          -7.366774853544455e-06,
+          0.0
+        ],
+        "translation_rate": [
+          2.5927251817488105e-06,
+          -6.456355346744346e-06,
+          -1.3131969135515848e-05
+        ],
+        "pick_mm_per_min": 3.3079752419843627,
+        "deg_per_min": 0.17029684477637655,
+        "fail_s": 156.58336633434206
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 91.79999999999994,
+      "warned": true,
+      "warn_s": 70.01677698808933,
+      "cause": "camera_sag",
+      "health": 76.5,
+      "eta_s": 78.38480233314158,
+      "warn_mm": 1.9668459859951442,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 21.783223011910607,
+      "lead_share": 0.35377623611475323,
+      "eta_err_s": 56.60157932123097,
+      "miss_mm": 3.394698095126289
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 5,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 36.158815794729875,
+        "rotvec_rate": [
+          -5.0876239820229165e-05,
+          -4.91424140394507e-06,
+          0.0
+        ],
+        "translation_rate": [
+          1.8721281692282674e-06,
+          5.058505894402627e-06,
+          -1.4353933030644619e-05
+        ],
+        "pick_mm_per_min": 4.4185747594082745,
+        "deg_per_min": 0.17571364411016305,
+        "fail_s": 148.3001754247228
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 158.0999999999999,
+      "warned": true,
+      "warn_s": 80.03574831058931,
+      "cause": "camera_sag",
+      "health": 73.8,
+      "eta_s": 65.80551136304965,
+      "warn_mm": 2.8385315856789513,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 78.0642516894106,
+      "lead_share": 0.6401795439184921,
+      "eta_err_s": -12.258740326360964,
+      "miss_mm": 8.977417952716689
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 6,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 26.865417396266768,
+        "rotvec_rate": [
+          -3.821682411293065e-05,
+          4.11777583042807e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -1.042826471756228e-06,
+          7.662327143785703e-06,
+          -1.4975088109036568e-05
+        ],
+        "pick_mm_per_min": 3.8815483841701854,
+        "deg_per_min": 0.19313080916243835,
+        "fail_s": 132.2898610883166
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 119.09999999999988,
+      "warned": true,
+      "warn_s": 70.05138678718542,
+      "cause": "camera_sag",
+      "health": 70.2,
+      "eta_s": 53.45897804461192,
+      "warn_mm": 2.4586965841859576,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 49.04861321281446,
+      "lead_share": 0.5317811587389268,
+      "eta_err_s": 4.410364831797466,
+      "miss_mm": 5.9656094960627435
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 7,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 37.94427601939151,
+        "rotvec_rate": [
+          8.613424015488995e-06,
+          -5.2906749281706286e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -3.2262627956338963e-06,
+          -1.647092837172262e-06,
+          -1.5667695456376418e-05
+        ],
+        "pick_mm_per_min": 4.136603886294822,
+        "deg_per_min": 0.18427461707506737,
+        "fail_s": 137.50572799628003
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 146.3999999999999,
+      "warned": true,
+      "warn_s": 80.04878814966537,
+      "cause": "camera_sag",
+      "health": 72.5,
+      "eta_s": 61.191102879515704,
+      "warn_mm": 2.5507805016148746,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 66.35121185033452,
+      "lead_share": 0.6117815585482418,
+      "eta_err_s": -5.160108970818811,
+      "miss_mm": 7.475175260712871
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 8,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 39.74553686675851,
+        "rotvec_rate": [
+          -2.240802985655947e-05,
+          4.863824829787998e-05,
+          0.0
+        ],
+        "translation_rate": [
+          -1.336007477688363e-06,
+          -8.786904870095201e-06,
+          -1.3383097428545445e-05
+        ],
+        "pick_mm_per_min": 4.06780946782661,
+        "deg_per_min": 0.1840976468031966,
+        "fail_s": 119.61833659633365
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 111.2999999999999,
+      "warned": true,
+      "warn_s": 80.03323174390725,
+      "cause": "camera_sag",
+      "health": 68.9,
+      "eta_s": 46.43413918937017,
+      "warn_mm": 2.420746938161323,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": 31.266768256092647,
+      "lead_share": 0.43696461250601343,
+      "eta_err_s": 15.167370933277525,
+      "miss_mm": 4.850879459833169
+    },
+    {
+      "kind": "camera_sag",
+      "seed": 9,
+      "drift": {
+        "type": "camera_sag",
+        "start_s": 25.736344181751107,
+        "rotvec_rate": [
+          -3.7597490923587026e-05,
+          -2.8469159362801338e-05,
+          0.0
+        ],
+        "translation_rate": [
+          2.315486467408499e-06,
+          4.0354066715990925e-06,
+          -1.33611304793308e-05
+        ],
+        "pick_mm_per_min": 4.423214314234403,
+        "deg_per_min": 0.16212409246308515,
+        "fail_s": 152.2149522382051
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 60.599999999999994,
+      "warned": true,
+      "warn_s": 70.02076871960134,
+      "cause": "camera_sag",
+      "health": 72.7,
+      "eta_s": 71.70674736639859,
+      "warn_mm": 2.8988868626661954,
+      "joint": null,
+      "cause_ok": true,
+      "lead_s": -9.420768719601341,
+      "lead_share": -0.27021746568155863,
+      "eta_err_s": 81.12751608599993,
+      "miss_mm": 2.5703823576114133
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1000,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 32.07683694012659,
+        "joint": 4,
+        "rate_rad_s": -0.00021794350079273547,
+        "pick_mm_per_min": 3.656220016956138,
+        "deg_per_min": 0.7492345660637912,
+        "fail_s": 131.28314427850376
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 95.69999999999993,
+      "warned": true,
+      "warn_s": 70.01471073464158,
+      "cause": "joint_creep",
+      "health": 75.4,
+      "eta_s": 63.28275485571611,
+      "warn_mm": 1.948396587629397,
+      "joint": 5,
+      "cause_ok": true,
+      "lead_s": 25.68528926535835,
+      "lead_share": 0.40370971875741074,
+      "eta_err_s": 37.59746559035776,
+      "miss_mm": 3.8769738068325146
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1001,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 20.31400935640663,
+        "joint": 2,
+        "rate_rad_s": -0.00010912385320921104,
+        "pick_mm_per_min": 4.365259966630008,
+        "deg_per_min": 0.375140173985575,
+        "fail_s": 136.75569571419706
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 103.49999999999991,
+      "warned": true,
+      "warn_s": 60.04388955135555,
+      "cause": "joint_creep",
+      "health": 75.9,
+      "eta_s": 74.06095778166642,
+      "warn_mm": 2.5880104038336675,
+      "joint": 3,
+      "cause_ok": true,
+      "lead_s": 43.45611044864437,
+      "lead_share": 0.5223969819008366,
+      "eta_err_s": 30.604847333022036,
+      "miss_mm": 6.0521207182571715
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1002,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 27.14378675341894,
+        "joint": 4,
+        "rate_rad_s": 0.00023290580529717705,
+        "pick_mm_per_min": 3.90722762686398,
+        "deg_per_min": 0.8006711800574363,
+        "fail_s": 122.84926956898695
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 103.49999999999991,
+      "warned": true,
+      "warn_s": 70.00305159431797,
+      "cause": "joint_creep",
+      "health": 70.3,
+      "eta_s": 49.9306876908572,
+      "warn_mm": 2.3917226504297058,
+      "joint": 5,
+      "cause_ok": true,
+      "lead_s": 33.49694840568195,
+      "lead_share": 0.43869315909510287,
+      "eta_err_s": 16.43373928517525,
+      "miss_mm": 4.97228644816202
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1003,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 25.13411620437644,
+        "joint": 1,
+        "rate_rad_s": -0.00029207904706116475,
+        "pick_mm_per_min": 8.375714956768968,
+        "deg_per_min": 1.0040938008484614,
+        "fail_s": 111.26544209611801
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 122.99999999999987,
+      "warned": true,
+      "warn_s": 60.031882134061824,
+      "cause": "joint_creep",
+      "health": 73.9,
+      "eta_s": 50.932423713647275,
+      "warn_mm": 3.8308797439919124,
+      "joint": 2,
+      "cause_ok": true,
+      "lead_s": 62.96811786593805,
+      "lead_share": 0.6434123457918844,
+      "eta_err_s": -12.035694152290773,
+      "miss_mm": 13.661147909988319
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1004,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 22.60302624255263,
+        "joint": 0,
+        "rate_rad_s": -0.00016626894127411354,
+        "pick_mm_per_min": 4.79746563493994,
+        "deg_per_min": 0.5715905159469146,
+        "fail_s": 100.0528271644429
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 111.2999999999999,
+      "warned": true,
+      "warn_s": 60.04277435781724,
+      "cause": "joint_creep",
+      "health": 66.7,
+      "eta_s": 37.99564541027832,
+      "warn_mm": 2.6081476734942894,
+      "joint": 1,
+      "cause_ok": true,
+      "lead_s": 51.25722564218266,
+      "lead_share": 0.5778914823221796,
+      "eta_err_s": -13.261580231904333,
+      "miss_mm": 7.091947419265094
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1005,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 38.61124084777207,
+        "joint": 2,
+        "rate_rad_s": -0.00014221729177116724,
+        "pick_mm_per_min": 5.689090259129646,
+        "deg_per_min": 0.48890703553610976,
+        "fail_s": 104.93315038407363
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 115.19999999999989,
+      "warned": true,
+      "warn_s": 80.03917740292444,
+      "cause": "joint_creep",
+      "health": 70.0,
+      "eta_s": 47.50550786808223,
+      "warn_mm": 3.20339489638658,
+      "joint": 3,
+      "cause_ok": true,
+      "lead_s": 35.16082259707545,
+      "lead_share": 0.4590859414132797,
+      "eta_err_s": 12.344685271006782,
+      "miss_mm": 7.2619704646736025
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1006,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 32.0171388759931,
+        "joint": 3,
+        "rate_rad_s": -0.00023805134287240506,
+        "pick_mm_per_min": 4.23984393826681,
+        "deg_per_min": 0.818360235240629,
+        "fail_s": 120.21528601436947
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 134.69999999999987,
+      "warned": true,
+      "warn_s": 70.0479694275351,
+      "cause": "joint_creep",
+      "health": 70.1,
+      "eta_s": 41.66566250870477,
+      "warn_mm": 2.5095535445420794,
+      "joint": 4,
+      "cause_ok": true,
+      "lead_s": 64.65203057246478,
+      "lead_share": 0.6296282540704297,
+      "eta_err_s": -22.98636806376001,
+      "miss_mm": 7.255808098436336
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1007,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 36.319606903558864,
+        "joint": 3,
+        "rate_rad_s": 0.0002744456769872142,
+        "pick_mm_per_min": 4.888049888386732,
+        "deg_per_min": 0.943474739818682,
+        "fail_s": 104.27349624765314
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 87.89999999999995,
+      "warned": true,
+      "warn_s": 70.01174917973802,
+      "cause": "joint_creep",
+      "health": 72.3,
+      "eta_s": 50.812003759521644,
+      "warn_mm": 2.344789172068278,
+      "joint": 4,
+      "cause_ok": true,
+      "lead_s": 17.88825082026193,
+      "lead_share": 0.346803305411338,
+      "eta_err_s": 32.923752939259714,
+      "miss_mm": 4.202090667323521
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1008,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 36.261014954575586,
+        "joint": 2,
+        "rate_rad_s": -0.00013562308442335231,
+        "pick_mm_per_min": 5.425303483823178,
+        "deg_per_min": 0.4662378205202726,
+        "fail_s": 110.03516494327712
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 126.89999999999986,
+      "warned": true,
+      "warn_s": 70.00537928394647,
+      "cause": "joint_creep",
+      "health": 76.9,
+      "eta_s": 64.2195618981381,
+      "warn_mm": 2.4324210766644807,
+      "joint": 3,
+      "cause_ok": true,
+      "lead_s": 56.894620716053396,
+      "lead_share": 0.6277058452004985,
+      "eta_err_s": 7.3249411820847,
+      "miss_mm": 8.195682094331588
+    },
+    {
+      "kind": "joint_creep",
+      "seed": 1009,
+      "drift": {
+        "type": "joint_creep",
+        "start_s": 26.538311753457236,
+        "joint": 1,
+        "rate_rad_s": -0.0003143272616705079,
+        "pick_mm_per_min": 9.013709040014037,
+        "deg_per_min": 1.0805775287774613,
+        "fail_s": 103.39002772320636
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": 111.2999999999999,
+      "warned": true,
+      "warn_s": 60.04821860304729,
+      "cause": "joint_creep",
+      "health": 72.0,
+      "eta_s": 43.410395590623295,
+      "warn_mm": 4.137622669455423,
+      "joint": 2,
+      "cause_ok": true,
+      "lead_s": 51.25178139695261,
+      "lead_share": 0.6046573924752273,
+      "eta_err_s": -7.841385806329313,
+      "miss_mm": 12.73324383999174
+    },
+    {
+      "kind": "none",
+      "seed": 2000,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2001,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2002,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2003,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2004,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2005,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2006,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2007,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2008,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    },
+    {
+      "kind": "none",
+      "seed": 2009,
+      "drift": {
+        "type": "none"
+      },
+      "log_s": 231.36,
+      "n_windows": 23,
+      "first_miss_s": null,
+      "warned": false
+    }
+  ]
+}

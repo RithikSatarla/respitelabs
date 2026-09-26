@@ -1,0 +1,21 @@
+KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : 13:40:23  (lines up with maintenance at 13:40:23: joint service, arm power-cycled)
+   seen in    : camera vs arm at 13:40:23
+   seen in    : first missed pick at 13:40:25
+
+What changed (6 s check motion)
+  - Joint encoder zero drifted: elbow joint (J3) off by -2.911 deg (moves the fingertip about 14 mm)
+
+Fix written to controller
+  - J3 zero offset +2.911 deg
+
+Verification (check motion re-run)
+  [ok  ] Command timing               8 ms vs 8 ms normal
+  [ok  ] Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  [ok  ] Camera vs joint encoders     disagreement 1.0x sensor noise
+  [ok  ] Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  [ok  ] Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: GO

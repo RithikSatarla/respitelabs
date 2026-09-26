@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+demo/
+kintrace_ledger.jsonl
+keys/
+*.pem
+.pytest_cache/
+.venv/
+incidents_check/

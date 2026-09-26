@@ -1,0 +1,11 @@
+KINTRACE  diagnosis of encoder_bias.npz
+============================================================
+Sensor agreement checks
+  [ok  ] Command timing             8 ms delay vs 8 ms normal
+  [ok  ] Controller settings        match last known-good
+  [FAIL] Camera vs joint encoders   disagreement 12.6x sensor noise
+  [FAIL] Pick success               0% vs 100% normal
+
+Verdict: JOINT ENCODER ZERO DRIFTED   confidence 100%
+  size : base joint (J1) off by -1.889 deg (moves the fingertip about 16 mm)
+  fix  : Add +1.889 deg to the J1 zero offset (or remaster J1). Check the encoder battery and cable if it happens again.

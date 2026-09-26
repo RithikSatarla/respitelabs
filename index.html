@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kintrace</title>
+<meta name="description" content="Physical observability for robots in production. Kintrace checks that a robot arm is physically what its software thinks it is. After a crash or a change it finds what moved, writes the fix and certifies the cell GO or NO-GO.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#FFFFFF; --ink:#0C0C0E; --soft:#505157; --faint:#76777D; --rule:#E3E3E6; --panel:#F6F6F7;
+  --signal:#E8662F; --signal-ink:#B8481A; --go:#0B7A2A; --nogo:#C62828;
+  --display:"Archivo", "Arial Narrow", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--display);font-stretch:100%;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+code{font-family:var(--mono);font-size:.88em;background:var(--panel);padding:1px 5px;border:1px solid var(--rule)}
+:focus-visible{outline:2.5px solid var(--signal);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:24px}
+@media (max-width:520px){.wrap{padding-inline:16px}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--ink);color:var(--paper);padding:8px 12px;font-family:var(--mono);font-size:13px;z-index:20}
+.skip:focus{left:8px}
+
+/* nav */
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+.nav{display:flex;align-items:center;gap:28px;height:60px}
+.logo{font-weight:900;font-stretch:125%;letter-spacing:.04em;text-decoration:none;font-size:17px}
+.logo span{color:var(--signal)}
+.nav nav{display:flex;gap:20px;margin-left:auto;font-family:var(--mono);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em}
+.nav nav a{text-decoration:none;color:var(--soft)}
+.nav nav a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;text-decoration:none;padding:11px 16px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
+.btn:hover{background:var(--signal);border-color:var(--signal)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+@media (max-width:860px){.nav nav{display:none}.nav .btn{margin-left:auto}}
+
+/* section heads */
+.sec{padding-block:96px;border-bottom:1px solid var(--rule)}
+@media (max-width:600px){.sec{padding-block:64px}}
+.label{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;flex-wrap:nowrap;gap:10px;align-items:baseline;margin:0 0 20px}
+.label b{color:var(--signal-ink);font-weight:600}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-weight:850;font-stretch:112%;font-size:clamp(32px,4.6vw,58px);line-height:1.02;letter-spacing:-.01em;text-transform:uppercase;max-width:20ch}
+.lede{font-size:19px;color:var(--soft);max-width:64ch;margin:22px 0 0}
+@media (max-width:520px){.lede{font-size:17px}}
+
+/* hero */
+.hero{padding-block:84px 72px;border-bottom:1px solid var(--rule)}
+.hero .label{margin-bottom:28px}
+h1{font-weight:900;font-stretch:125%;font-size:clamp(34px,8.6vw,124px);line-height:.9;letter-spacing:-.02em;text-transform:uppercase}
+h1 em{font-style:normal;color:var(--signal)}
+@media (max-width:600px){h1{font-stretch:100%;font-size:clamp(32px,10.4vw,60px)}}
+.line{font-weight:800;font-stretch:112%;font-size:clamp(22px,2.6vw,32px);line-height:1.15;margin:34px 0 0;max-width:30ch}
+.line span{display:block}
+.line span + span{color:var(--signal-ink)}
+.hero .lede{font-size:19px;max-width:62ch}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.term{margin-top:56px;border:1.5px solid var(--ink);background:var(--paper);min-width:0}
+.term .bar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:9px 14px;border-bottom:1.5px solid var(--ink);color:var(--soft)}
+.term pre{margin:0;padding:18px 18px 20px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre}
+@media (max-width:520px){.term pre{font-size:11.5px;padding:14px}}
+.ok{color:var(--go);font-weight:600}
+.bad{color:var(--nogo);font-weight:600}
+.hi{color:var(--signal-ink);font-weight:600}
+.dim{color:var(--faint)}
+
+/* scenarios */
+.tabs{display:flex;flex-wrap:wrap;margin-top:44px;border:1.5px solid var(--ink)}
+.tabs button{flex:1 1 auto;font-family:var(--mono);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;padding:13px 14px;border:0;border-right:1px solid var(--rule);background:var(--paper);color:var(--soft);cursor:pointer;text-align:center}
+.tabs button:last-child{border-right:0}
+.tabs button:hover{color:var(--ink);background:var(--panel)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.tabs button:focus-visible{outline-offset:-5px;outline-color:var(--signal)}
+.tabs .tag{font-size:10px;border:1px solid currentColor;padding:1px 5px;margin-left:6px;vertical-align:1px}
+@media (max-width:600px){.tabs button{flex:1 1 45%;border-bottom:1px solid var(--rule)}.tabs button:last-child{flex-basis:100%}}
+.panel{border:1.5px solid var(--ink);border-top:0;padding:30px}
+.panel:focus-visible{outline-offset:-6px}
+@media (max-width:520px){.panel{padding:18px 14px}}
+.pgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:36px;align-items:start}
+@media (max-width:900px){.pgrid{grid-template-columns:minmax(0,1fr);gap:24px}}
+.ptitle{font-weight:850;font-stretch:112%;font-size:clamp(24px,2.6vw,32px);line-height:1.05;text-transform:uppercase}
+.story{font-size:16px;color:var(--soft);margin:12px 0 0;max-width:62ch}
+.story.small{font-size:14.5px;margin-top:18px}
+.fig{margin:22px 0 0}
+.figcap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;font-family:var(--mono);font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px}
+.key span::before{content:"";display:inline-block;width:14px;height:0;margin-right:6px;vertical-align:3px;border-top:2px solid var(--ink)}
+.key .k-tab::before{border-top-color:var(--signal)}
+.key .k-pk::before{width:8px;height:8px;border:0;border-radius:50%;background:var(--ink);vertical-align:0}
+.tl{display:block;width:100%;height:auto;border:1px solid var(--rule);background:var(--paper)}
+.tl .g{stroke:var(--rule);stroke-width:1}
+.tl .g1{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+.tl .axis{stroke:var(--ink);stroke-width:1}
+.tl .ax{font-family:var(--mono);font-size:11px;fill:var(--faint)}
+.tl .ev{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3}
+.tl .evl{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.tl .ln-arm{fill:none;stroke:var(--ink);stroke-width:1.7;stroke-linejoin:round}
+.tl .ln-tab{fill:none;stroke:var(--signal);stroke-width:1.7;stroke-linejoin:round}
+.tl .pk-ok{fill:var(--ink)}
+.tl .pk-miss{stroke:var(--nogo);stroke-width:2;fill:none}
+@media (max-width:600px){.tl .ax{font-size:17px}.tl .evl{font-size:17px}.tl .ln-arm,.tl .ln-tab{stroke-width:2.4}}
+.read{font-size:14.5px;color:var(--ink);margin:12px 0 0;padding-left:12px;border-left:3px solid var(--signal);max-width:70ch}
+.pside{display:flex;flex-direction:column;gap:22px}
+.stamp{align-self:flex-start;display:flex;flex-direction:column;gap:4px;border:4px double currentColor;padding:12px 22px 14px;transform:rotate(-3deg);font-family:var(--mono);text-transform:uppercase}
+.stamp .st{font-family:var(--display);font-weight:900;font-stretch:125%;font-size:52px;line-height:1;letter-spacing:.02em}
+.stamp .sh{font-size:12px;letter-spacing:.08em;font-weight:600}
+.stamp.go{color:var(--go)} .stamp.nogo{color:var(--nogo)} .stamp.build{color:var(--signal-ink)}
+.stamp.build .st{font-size:36px}
+@media (prefers-reduced-motion: no-preference){
+  .panel:not([hidden]) .stamp{animation:stamp .35s cubic-bezier(.2,.9,.3,1.3) both .1s}
+  @keyframes stamp{from{transform:rotate(-12deg) scale(1.6);opacity:0}to{transform:rotate(-3deg) scale(1);opacity:1}}
+}
+.kv{font-family:var(--mono);font-size:13px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 16px;margin:0}
+.kv dt{color:var(--faint);text-transform:uppercase;letter-spacing:.05em;font-size:11.5px;padding-top:2px}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.picks{display:inline-flex;gap:3px;vertical-align:-1px;margin-right:6px}
+.picks i{display:inline-block;width:11px;height:11px;border:1.5px solid var(--ink)}
+.picks .p-ok{background:var(--ink)}
+.picks .p-miss{border-color:var(--nogo);background:repeating-linear-gradient(45deg,transparent 0 2px,var(--nogo) 2px 3px)}
+.block{margin:0;padding:12px 14px 12px 30px;border:1.5px solid var(--nogo);font-family:var(--mono);font-size:12.5px;color:var(--nogo)}
+.rec{margin-top:30px}
+.rec pre{max-height:none}
+.after{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin-top:26px}
+.after p{margin:0;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+.ascii{font-family:var(--mono);font-size:12px;line-height:1.35;margin:0;padding:14px;background:var(--panel);border:1px solid var(--rule);overflow-x:auto;white-space:pre;color:var(--ink)}
+@media (max-width:520px){.ascii{font-size:10.5px;padding:12px 10px}}
+
+/* layers */
+.layers{margin-top:48px;display:grid;gap:0;border:1.5px solid var(--ink);font-family:var(--mono)}
+.layer{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,1fr);gap:8px 24px;padding:22px;border-bottom:1.5px solid var(--ink);align-items:start}
+.layer:last-child{border-bottom:0}
+.layer .ln{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.layer .ln b{display:block;font-family:var(--display);font-size:22px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:850;font-stretch:112%;margin-top:4px}
+.layer .w{font-size:13.5px}
+.layer .q{font-family:var(--display);font-size:17px;font-weight:600}
+.layer.phys{background:var(--ink);color:var(--paper)}
+.layer.phys .ln{color:#B9BAC0}
+.layer.phys .ln b{color:var(--signal)}
+.layer.body{background:var(--panel);grid-template-columns:1fr;font-size:12.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.06em;padding:14px 22px}
+@media (max-width:760px){.layer{grid-template-columns:minmax(0,1fr)}}
+.tbl{margin-top:36px;border:1.5px solid var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:15px;table-layout:fixed}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--rule);vertical-align:top;overflow-wrap:anywhere}
+thead th{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:500;border-bottom:1.5px solid var(--ink)}
+thead th:last-child{color:var(--signal-ink);font-weight:600}
+tbody th{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:500;width:22%}
+tbody tr:last-child th,tbody tr:last-child td{border-bottom:0}
+td + td{background:var(--panel)}
+@media (max-width:640px){
+  table,thead,tbody,tr,th,td{display:block}
+  thead{display:none}
+  tbody tr{border-bottom:1.5px solid var(--ink);padding:12px 14px}
+  tbody tr:last-child{border-bottom:0}
+  tbody th,td{padding:4px 0;border:0;width:auto}
+  td + td{background:none}
+  td::before{content:attr(data-h);display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-top:6px}
+  td + td::before{color:var(--signal-ink)}
+}
+.onlyh{margin-top:64px;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;border-top:1.5px solid var(--ink);padding-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px 20px}
+.onlyh span:last-child{color:var(--faint)}
+.only{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:18px;border:1.5px solid var(--ink)}
+.only > div{padding:22px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:8px}
+.only > div:nth-child(3n){border-right:0}
+.only > div:nth-last-child(-n+3){border-bottom:0}
+.only .no{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.only h3{font-size:20px;font-weight:800;font-stretch:108%;line-height:1.15}
+.only p{margin:0;font-size:15px;color:var(--soft)}
+.st-tag{align-self:flex-start;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border:1.5px solid var(--ink)}
+.st-tag.built{background:var(--ink);color:var(--paper)}
+.st-tag.inb{border-color:var(--signal-ink);color:var(--signal-ink)}
+@media (max-width:900px){.only{grid-template-columns:repeat(2,minmax(0,1fr))}.only > div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)!important}.only > div:nth-child(2n){border-right:0!important}.only > div:nth-last-child(-n+2){border-bottom:0!important}}
+@media (max-width:560px){.only{grid-template-columns:minmax(0,1fr)}.only > div{border-right:0!important;border-bottom:1px solid var(--rule)!important}.only > div:last-child{border-bottom:0!important}}
+.wedge{margin-top:40px;font-weight:800;font-stretch:112%;font-size:clamp(22px,2.6vw,30px);line-height:1.2;max-width:34ch}
+.wedge span{color:var(--signal-ink)}
+
+/* thesis */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1.5px solid var(--ink);margin-top:56px}
+.stat{padding:24px 22px 26px 0;border-right:1px solid var(--rule)}
+.stat + .stat{padding-left:22px}
+.stat:last-child{border-right:0}
+.stat .n{font-weight:900;font-stretch:118%;font-size:clamp(36px,4.4vw,54px);line-height:1;font-variant-numeric:tabular-nums}
+.stat p{margin:12px 0 0;font-size:15px;color:var(--soft)}
+.src{display:block;margin-top:10px;font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.03em}
+@media (max-width:900px){.stats{grid-template-columns:1fr 1fr}.stat:nth-child(2){border-right:0}.stat:nth-child(3){padding-left:0;border-top:1px solid var(--rule)}.stat:nth-child(4){border-top:1px solid var(--rule)}}
+@media (max-width:520px){.stats{grid-template-columns:1fr}.stat,.stat + .stat{padding-left:0;border-right:0;border-top:1px solid var(--rule)}.stat:first-child{border-top:0}}
+.faults{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:40px;border:1.5px solid var(--ink)}
+.fault{padding:18px 16px;border-right:1px solid var(--rule);font-family:var(--mono);font-size:13px}
+.fault:last-child{border-right:0}
+.fault b{display:block;font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:6px}
+.fault span{color:var(--soft)}
+.same{font-family:var(--mono);font-size:13px;text-align:center;padding:12px;border:1.5px solid var(--ink);border-top:0;background:var(--panel)}
+@media (max-width:900px){.faults{grid-template-columns:1fr 1fr}.fault{border-bottom:1px solid var(--rule)}}
+@media (max-width:520px){.faults{grid-template-columns:1fr}.fault{border-right:0}}
+
+/* system */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:56px;border-top:1.5px solid var(--ink)}
+.step{padding:26px 22px 8px 0;border-right:1px solid var(--rule);display:flex;flex-direction:column;gap:14px;min-width:0}
+.step + .step{padding-left:22px}
+.step:last-child{border-right:0}
+.step .op{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--faint)}
+.step h3{font-weight:850;font-stretch:118%;font-size:30px;line-height:1;text-transform:uppercase}
+.step p{margin:0;color:var(--soft);font-size:15.5px}
+.spec{font-family:var(--mono);font-size:12.5px;border-top:1px solid var(--rule);padding-top:12px;margin-top:auto;display:flex;flex-direction:column;gap:4px}
+.spec div{display:flex;justify-content:space-between;gap:10px}
+.spec div span:last-child{font-weight:600;text-align:right}
+@media (max-width:980px){.steps{grid-template-columns:1fr 1fr}.step:nth-child(2){border-right:0}.step:nth-child(3){padding-left:0}.step:nth-child(n+3){border-top:1px solid var(--rule);padding-top:26px}.step{padding-bottom:28px}}
+@media (max-width:600px){.steps{grid-template-columns:minmax(0,1fr)}.step,.step + .step{padding-left:0;border-right:0;border-top:1px solid var(--rule)}.step:first-child{border-top:0}}
+
+/* evidence */
+.ev{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:48px;border:1.5px solid var(--ink)}
+.ev > div{padding:24px 20px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column}
+.ev > div:nth-child(4n){border-right:0}
+.ev > div:nth-last-child(-n+4){border-bottom:0}
+.ev .n{font-weight:900;font-stretch:118%;font-size:clamp(34px,3.6vw,46px);line-height:1;font-variant-numeric:tabular-nums}
+.ev p{margin:10px 0 0;font-size:15px;color:var(--soft)}
+.ev .src{margin-top:auto;padding-top:12px}
+@media (max-width:900px){.ev{grid-template-columns:1fr 1fr}.ev > div{border-right:1px solid var(--rule)!important;border-bottom:1px solid var(--rule)!important}.ev > div:nth-child(2n){border-right:0!important}.ev > div:nth-last-child(-n+2){border-bottom:0!important}}
+@media (max-width:520px){.ev{grid-template-columns:minmax(0,1fr)}.ev > div{border-right:0!important;border-bottom:1px solid var(--rule)!important}.ev > div:last-child{border-bottom:0!important}}
+.limits{margin-top:28px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 18px;font-family:var(--mono);font-size:13px;color:var(--soft);max-width:96ch}
+.limits dt{color:var(--signal-ink);font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.06em;padding-top:1px}
+.limits dd{margin:0}
+@media (max-width:520px){.limits{grid-template-columns:minmax(0,1fr);gap:2px}.limits dd{margin-bottom:10px}}
+
+/* rig */
+.rig{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;margin-top:48px;align-items:start}
+@media (max-width:900px){.rig{grid-template-columns:minmax(0,1fr)}}
+.rig .ascii{font-size:13px;line-height:1.4;padding:20px;border:1.5px solid var(--ink);background:var(--paper)}
+@media (max-width:520px){.rig .ascii{font-size:10.5px;padding:12px 10px}}
+.bom{font-family:var(--mono);font-size:13px;border:1.5px solid var(--ink)}
+.bom div{display:flex;justify-content:space-between;gap:16px;padding:10px 14px;border-bottom:1px solid var(--rule)}
+.bom div:last-child{border-bottom:0;background:var(--panel);font-weight:600}
+.bom span:last-child{text-align:right;color:var(--soft)}
+.bom div:last-child span:last-child{color:var(--ink)}
+.breaks{margin:24px 0 0;padding:0;list-style:none;font-family:var(--mono);font-size:13px;display:flex;flex-direction:column;gap:6px}
+.breaks li::before{content:"> ";color:var(--signal-ink);font-weight:600}
+.status-now{margin-top:24px;border-left:3px solid var(--signal);padding:4px 0 4px 14px;font-size:15.5px}
+.status-now b{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--signal-ink);display:block;margin-bottom:4px}
+
+/* contact */
+.contact{padding-block:110px}
+@media (max-width:600px){.contact{padding-block:72px}}
+.contact h2{font-size:clamp(36px,7vw,96px);font-stretch:125%;max-width:none}
+@media (max-width:600px){.contact h2{font-stretch:100%}}
+.mailbox{margin-top:30px;display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 14px;border:1.5px solid var(--ink);padding:12px 16px;max-width:100%}
+.mailbox span{font-family:var(--mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.mail{font-family:var(--mono);font-size:18px;user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
+@media (max-width:520px){.mail{font-size:15px}}
+footer{border-top:1.5px solid var(--ink);padding-block:22px;font-family:var(--mono);font-size:12.5px;color:var(--faint)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#scenarios">Skip to scenarios</a>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top" aria-label="Kintrace, top of page">KINTRACE<span>.</span></a>
+    <nav aria-label="Sections">
+      <a href="play/">Crash it</a><a href="#scenarios">Scenarios</a><a href="#layers">Layers</a><a href="#system">System</a><a href="#evidence">Evidence</a><a href="#rig">Rig</a><a href="#contact">Contact</a>
+    </nav>
+    <a class="btn" href="#contact">Talk to us →</a>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="label"><b>//</b> Physical observability for robots in production</p>
+    <h1>Observability for the robot's <em>body.</em></h1>
+    <p class="line"><span>Ember watches the code.</span><span>Kintrace watches the body.</span></p>
+    <p class="lede">Kintrace checks that a robot arm is physically what its software thinks it is. When a crash or a change moves something, it tells you what moved, by how much and when. Then it writes the fix to the controller, re-checks the cell and calls it GO or NO-GO.</p>
+    <div class="ctas">
+      <a class="btn" href="#scenarios">Pick a scenario →</a>
+      <a class="btn ghost" href="play/">Crash it yourself →</a>
+      <a class="btn ghost" href="demo/">Open the full demo</a>
+    </div>
+
+    <div class="term" role="group" aria-label="Example Kintrace record after a crash">
+      <div class="bar"><span>$ kintrace incident --scenario crash</span><span>cell 3 · simulated</span></div>
+<pre><span class="dim">KINTRACE  recommission record, Cell 3</span>
+Changed at   : <span class="hi">13:40:23</span>  lines up with protective stop at 13:40:23
+What changed : camera moved <span class="hi">21.2 mm</span> · gripper bent, fingertip moved <span class="hi">24.4 mm</span>
+Fix written  : camera calibration updated · tool offset → [-2.7, 24.0, 183.8] mm
+Re-check     : <span class="ok">[ok]</span> timing  <span class="ok">[ok]</span> table marker  <span class="ok">[ok]</span> camera vs joints  <span class="ok">[ok]</span> fingertip
+Test picks   : 6/6
+STATUS       : <span class="ok">GO</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="scenarios" aria-labelledby="scn-h">
+  <div class="wrap">
+    <p class="label"><b>// 01</b> · Scenarios</p>
+    <h2 id="scn-h">Something just happened to your robot. Pick one.</h2>
+    <p class="lede">Each tab is a real run of the prototype on a simulated UR5e-class pick cell. The chart is the robot's own log. The record is the file Kintrace wrote, unedited.</p>
+    <div class="tabs" role="tablist" aria-label="What happened"><button type="button" role="tab" id="t-crash" aria-controls="p-crash" aria-selected="true" tabindex="0">Crash</button><button type="button" role="tab" id="t-tcp_edit" aria-controls="p-tcp_edit" aria-selected="false" tabindex="-1">Tool offset edit</button><button type="button" role="tab" id="t-joint_service" aria-controls="p-joint_service" aria-selected="false" tabindex="-1">Joint service</button><button type="button" role="tab" id="t-software_update" aria-controls="p-software_update" aria-selected="false" tabindex="-1">Software update</button><button type="button" role="tab" id="t-drift" aria-controls="p-drift" aria-selected="false" tabindex="-1">Slow drift</button></div>
+    
+<div class="panel" role="tabpanel" id="p-crash" aria-labelledby="t-crash" tabindex="0">
+  <div class="pgrid">
+    <div class="pmain">
+      <h3 class="ptitle">The arm hit something.</h3>
+      <p class="story">A collision bends the gripper finger and knocks the camera. The arm hits a protective stop, restarts, and starts missing picks. From the outside it looks like one problem. It is two.</p>
+      <figure class="fig">
+        <figcaption class="figcap"><span>sensor disagreement, x sensor noise</span><span class="key"><span class="k-arm">camera vs arm</span><span class="k-tab">camera vs table marker</span><span class="k-pk">pick ok / missed</span></span></figcaption>
+        <svg class="tl" viewBox="0 0 560 232" role="img" aria-labelledby="tl-crash-t" preserveAspectRatio="xMidYMid meet"><title id="tl-crash-t">Sensor disagreement from 13:40:00 to 13:40:54. Event: protective stop at 13:40:23. Camera vs arm peaks near 18x sensor noise, camera vs table marker near 18x.</title><line class="g1" x1="44" x2="548" y1="156.2" y2="156.2"/><text class="ax" x="38" y="160.2" text-anchor="end">1x</text><line class="g" x1="44" x2="548" y1="104.4" y2="104.4"/><text class="ax" x="38" y="108.4" text-anchor="end">10x</text><line class="g" x1="44" x2="548" y1="46.8" y2="46.8"/><text class="ax" x="38" y="50.8" text-anchor="end">20x</text><line class="axis" x1="44" x2="548" y1="162" y2="162"/><line class="axis" x1="44.0" x2="44.0" y1="162" y2="166"/><text class="ax" x="44.0" y="179" text-anchor="middle">:00</text><line class="axis" x1="135.6" x2="135.6" y1="162" y2="166"/><text class="ax" x="135.6" y="179" text-anchor="middle">:10</text><line class="axis" x1="227.3" x2="227.3" y1="162" y2="166"/><text class="ax" x="227.3" y="179" text-anchor="middle">:20</text><line class="axis" x1="318.9" x2="318.9" y1="162" y2="166"/><text class="ax" x="318.9" y="179" text-anchor="middle">:30</text><line class="axis" x1="410.5" x2="410.5" y1="162" y2="166"/><text class="ax" x="410.5" y="179" text-anchor="middle">:40</text><line class="axis" x1="502.2" x2="502.2" y1="162" y2="166"/><text class="ax" x="502.2" y="179" text-anchor="middle">:50</text><line class="ev" x1="259.3" x2="259.3" y1="12" y2="162"/><text class="evl" x="265.3" y="20">protective stop 13:40:23</text><polyline class="ln-tab" points="44.1,157.9 48.4,156.4 53.3,157.2 56.9,156.0 60.6,156.5 65.5,156.8 69.1,155.6 74.6,154.6 78.9,157.7 83.2,157.2 87.5,155.0 91.1,156.8 95.4,156.5 100.9,155.4 105.8,156.9 109.5,157.7 113.1,154.2 118.0,156.4 122.3,156.6 126.6,157.3 130.2,156.0 134.5,156.7 140.0,159.0 143.7,156.7 147.9,157.7 151.6,155.9 155.9,157.9 161.4,158.4 165.1,155.7 169.9,157.1 173.6,156.1 177.3,155.3 180.9,156.7 185.2,155.2 188.9,156.6 192.5,156.8 196.8,156.8 201.1,154.4 204.8,157.8 208.4,157.3 212.1,156.5 215.8,155.7 220.6,157.7 225.5,155.7 229.8,155.3 233.5,155.7 238.4,156.0 243.2,157.5 246.9,154.2 250.6,155.4 254.2,154.1 258.5,158.2 262.2,63.2 263.4,59.5 264.6,60.9 265.9,63.3 269.5,61.1 273.8,59.5 277.5,60.3 282.3,63.3 287.2,61.8 290.9,59.2 295.2,59.8 298.8,62.7 303.7,58.9 308.0,61.2 311.7,61.0 316.6,60.6 320.8,62.5 325.7,61.1 330.0,61.2 334.3,59.3 338.6,61.3 342.2,60.0 346.5,63.9 350.2,63.8 353.8,61.0 358.1,61.4 362.4,60.8 366.7,62.2 371.5,60.2 375.2,61.7 378.9,58.8 383.1,59.4 386.8,60.8 390.5,62.4 394.8,63.6 399.6,61.6 403.3,62.2 407.0,60.7 411.2,64.4 414.9,61.2 418.6,64.0 422.2,59.8 426.5,59.1 430.8,59.3 434.5,60.4 438.1,62.3 442.4,61.3 446.1,61.1 450.3,61.4 454.6,60.7 458.3,64.9 462.0,58.6 465.6,60.3 469.3,60.9 473.6,59.2 477.2,58.6 482.1,59.9 485.8,60.4 490.7,60.1 494.3,62.6 498.0,62.7 502.3,62.7 505.9,60.2 510.2,58.7 513.9,63.9 517.5,60.8 521.2,62.7 524.9,63.7 529.8,61.4 533.4,62.7 537.7,60.8"/><polyline class="ln-arm" points="44.1,157.7 48.4,155.1 53.3,155.3 56.9,156.0 60.6,156.0 65.5,155.3 69.1,153.9 74.6,157.2 78.9,156.5 83.2,151.9 87.5,158.6 91.1,155.7 95.4,156.1 100.9,158.2 105.8,153.8 109.5,156.5 113.1,158.0 118.0,157.4 122.3,153.9 126.6,157.1 130.2,155.5 134.5,154.9 140.0,155.9 143.7,156.3 147.9,155.1 151.6,157.2 155.9,159.8 161.4,154.4 165.1,154.8 169.9,156.1 173.6,156.4 177.3,157.4 180.9,157.3 185.2,155.5 188.9,157.4 192.5,156.7 196.8,157.7 201.1,156.6 204.8,158.4 208.4,154.1 212.1,157.0 215.8,155.5 220.6,154.7 225.5,155.9 229.8,156.0 233.5,158.7 238.4,155.3 243.2,156.3 246.9,157.6 250.6,157.7 254.2,158.5 258.5,154.3 262.2,59.7 263.4,65.2 264.6,63.1 265.9,66.1 269.5,61.1 273.8,62.2 277.5,59.4 282.3,66.1 287.2,59.8 290.9,59.4 295.2,63.3 298.8,65.7 303.7,62.4 308.0,55.8 311.7,63.2 316.6,63.3 320.8,62.6 325.7,61.1 330.0,64.5 334.3,64.2 338.6,64.8 342.2,66.3 346.5,61.4 350.2,63.6 353.8,65.4 358.1,59.0 362.4,61.7 366.7,63.8 371.5,61.5 375.2,61.7 378.9,63.5 383.1,63.3 386.8,64.5 390.5,65.4 394.8,64.1 399.6,60.8 403.3,58.9 407.0,64.0 411.2,62.0 414.9,61.4 418.6,61.5 422.2,62.3 426.5,64.1 430.8,61.9 434.5,62.4 438.1,57.1 442.4,65.8 446.1,61.5 450.3,60.8 454.6,62.6 458.3,61.5 462.0,63.7 465.6,62.8 469.3,61.8 473.6,63.8 477.2,63.1 482.1,61.6 485.8,64.7 490.7,63.6 494.3,62.0 498.0,61.6 502.3,61.6 505.9,60.4 510.2,62.3 513.9,65.8 517.5,63.1 521.2,64.1 524.9,65.7 529.8,61.4 533.4,64.2 537.7,63.3"/><text class="ax" x="2" y="208">picks</text><circle class="pk-ok" cx="63.2" cy="204" r="4.5"/><circle class="pk-ok" cx="99.0" cy="204" r="4.5"/><circle class="pk-ok" cx="134.7" cy="204" r="4.5"/><circle class="pk-ok" cx="170.5" cy="204" r="4.5"/><circle class="pk-ok" cx="206.2" cy="204" r="4.5"/><circle class="pk-ok" cx="241.9" cy="204" r="4.5"/><path class="pk-miss" d="M273.7,200 L281.7,208 M281.7,200 L273.7,208"/><path class="pk-miss" d="M309.4,200 L317.4,208 M317.4,200 L309.4,208"/><path class="pk-miss" d="M345.1,200 L353.1,208 M353.1,200 L345.1,208"/><path class="pk-miss" d="M380.9,200 L388.9,208 M388.9,200 L380.9,208"/><path class="pk-miss" d="M416.6,200 L424.6,208 M424.6,200 L416.6,208"/><path class="pk-miss" d="M452.4,200 L460.4,208 M460.4,200 L452.4,208"/><circle class="pk-ok" cx="492.1" cy="204" r="4.5"/><path class="pk-miss" d="M523.8,200 L531.8,208 M531.8,200 L523.8,208"/></svg>
+        <p class="read">Both lines jump at 13:40:23. The table marker moved too, so the camera moved. The fingertip check then finds the bent finger on top of that.</p>
+      </figure>
+    </div>
+    <aside class="pside">
+      <div class="stamp go"><span class="st">GO</span><span class="sh">Back in production</span></div>
+      <dl class="kv">
+        <dt>changed at</dt><dd>13:40:23, collision detected, arm stopped</dd>
+        <dt>what</dt><dd>camera moved, 21.2 mm, 0.11 deg; gripper / tool bent, fingertip moved 24.4 mm</dd>
+        <dt>fix written</dt><dd>camera calibration, tool offset [-2.7, 24.0, 183.8] mm</dd>
+        <dt>test picks</dt><dd><span class="picks"><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i></span> 6/6</dd>
+      </dl>
+      
+    </aside>
+  </div>
+  <div class="term rec">
+    <div class="bar"><span>$ kintrace incident --scenario crash</span><span>crash_record.txt</span></div>
+<pre>KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : <span class="hi">13:40:23</span>  (lines up with protective stop at <span class="hi">13:40:23</span>: collision detected, arm stopped)
+   seen in    : camera vs arm at <span class="hi">13:40:23</span>
+   seen in    : camera vs table marker at <span class="hi">13:40:23</span>
+   seen in    : first missed pick at <span class="hi">13:40:25</span>
+
+What changed (6 s check motion)
+  - Camera moved: 21.2 mm, 0.11 deg (parts appear 23 mm off in the pick area)
+  - Gripper / tool bent: fingertip moved 24.4 mm (x -2.7, y +24.0, z +3.8)
+
+Fix written to controller
+  - camera calibration updated
+  - tool offset set to [-2.7, 24.0, 183.8] mm
+
+Verification (check motion re-run)
+  <span class="ok">[ok  ]</span> Command timing               8 ms vs 8 ms normal
+  <span class="ok">[ok  ]</span> Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  <span class="ok">[ok  ]</span> Camera vs joint encoders     disagreement 1.0x sensor noise
+  <span class="ok">[ok  ]</span> Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  <span class="ok">[ok  ]</span> Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: <span class="ok">GO</span></pre>
+  </div>
+</div>
+<div class="panel" role="tabpanel" id="p-tcp_edit" aria-labelledby="t-tcp_edit" tabindex="0" hidden>
+  <div class="pgrid">
+    <div class="pmain">
+      <h3 class="ptitle">Someone reloaded an old file.</h3>
+      <p class="story">A technician reloads an old installation file. The tool offset in the controller is now 23 mm off. Nothing physical moved, and the arm still misses.</p>
+      <figure class="fig">
+        <figcaption class="figcap"><span>sensor disagreement, x sensor noise</span><span class="key"><span class="k-arm">camera vs arm</span><span class="k-tab">camera vs table marker</span><span class="k-pk">pick ok / missed</span></span></figcaption>
+        <svg class="tl" viewBox="0 0 560 232" role="img" aria-labelledby="tl-tcp_edit-t" preserveAspectRatio="xMidYMid meet"><title id="tl-tcp_edit-t">Sensor disagreement from 13:40:00 to 13:40:54. Event: config change at 13:40:23. Camera vs arm peaks near 2x sensor noise, camera vs table marker near 2x.</title><line class="g1" x1="44" x2="548" y1="156.2" y2="156.2"/><text class="ax" x="38" y="160.2" text-anchor="end">1x</text><line class="g" x1="44" x2="548" y1="104.4" y2="104.4"/><text class="ax" x="38" y="108.4" text-anchor="end">10x</text><line class="g" x1="44" x2="548" y1="46.8" y2="46.8"/><text class="ax" x="38" y="50.8" text-anchor="end">20x</text><line class="axis" x1="44" x2="548" y1="162" y2="162"/><line class="axis" x1="44.0" x2="44.0" y1="162" y2="166"/><text class="ax" x="44.0" y="179" text-anchor="middle">:00</text><line class="axis" x1="135.6" x2="135.6" y1="162" y2="166"/><text class="ax" x="135.6" y="179" text-anchor="middle">:10</text><line class="axis" x1="227.3" x2="227.3" y1="162" y2="166"/><text class="ax" x="227.3" y="179" text-anchor="middle">:20</text><line class="axis" x1="318.9" x2="318.9" y1="162" y2="166"/><text class="ax" x="318.9" y="179" text-anchor="middle">:30</text><line class="axis" x1="410.5" x2="410.5" y1="162" y2="166"/><text class="ax" x="410.5" y="179" text-anchor="middle">:40</text><line class="axis" x1="502.2" x2="502.2" y1="162" y2="166"/><text class="ax" x="502.2" y="179" text-anchor="middle">:50</text><line class="ev" x1="259.3" x2="259.3" y1="12" y2="162"/><text class="evl" x="265.3" y="20">config change 13:40:23</text><polyline class="ln-tab" points="44.1,155.2 47.7,157.3 52.6,157.8 56.3,155.0 60.6,157.4 65.4,157.5 69.1,155.6 74.0,155.3 78.3,156.2 81.9,155.4 85.6,153.6 89.3,158.4 92.9,156.2 97.8,157.0 101.5,155.8 105.1,157.0 108.8,157.2 113.1,154.8 116.8,154.7 121.0,158.5 125.3,155.2 129.6,156.7 133.9,156.0 137.5,155.2 141.2,157.0 145.5,158.6 149.1,155.4 152.8,154.8 157.1,156.9 161.4,155.8 165.0,156.9 168.7,157.3 172.3,157.4 177.8,155.6 181.5,154.1 185.2,156.7 188.8,156.2 192.5,155.8 196.2,156.6 200.4,156.6 205.3,156.6 209.0,155.4 213.9,156.2 217.6,157.1 221.8,157.8 226.1,157.0 229.8,155.7 234.7,156.2 238.3,154.6 243.2,154.9 246.9,157.0 250.5,158.0 254.2,154.5 259.1,156.1 262.8,156.2 267.6,156.9 271.3,156.2 275.0,157.6 278.6,155.8 282.3,157.5 286.0,154.8 290.9,159.3 294.5,157.5 298.2,157.5 303.1,155.0 306.7,157.1 311.0,156.2 315.3,155.2 319.6,157.7 324.5,155.9 328.1,158.0 331.8,156.2 336.1,157.0 339.7,153.9 343.4,156.0 347.1,157.7 351.3,154.9 355.0,156.1 358.7,153.0 362.3,155.8 366.6,155.8 370.9,157.1 374.6,155.8 379.4,156.4 383.7,155.7 387.4,156.5 391.7,156.7 395.3,155.6 400.2,157.4 403.9,158.1 407.5,154.1 411.2,157.1 414.9,156.0 418.5,156.2 422.8,155.7 426.5,156.1 431.4,157.2 436.3,155.5 439.9,155.6 444.2,159.1 447.9,156.9 451.5,157.1 456.4,155.9 460.1,156.4 465.6,155.5 469.2,157.2 473.5,156.4 477.8,155.1 481.5,157.4 485.1,156.9 489.4,158.2 493.1,155.4 498.0,156.9 502.2,157.5 505.9,156.5 509.6,156.8 513.2,156.7 516.9,157.1 520.6,156.2 525.5,154.2 530.3,157.0 534.6,157.9 538.3,157.5"/><polyline class="ln-arm" points="44.1,156.7 47.7,158.1 52.6,157.6 56.3,154.5 60.6,156.9 65.4,157.4 69.1,153.7 74.0,155.3 78.3,155.7 81.9,155.2 85.6,156.5 89.3,157.1 92.9,154.2 97.8,158.0 101.5,157.4 105.1,156.1 108.8,156.3 113.1,153.0 116.8,157.2 121.0,156.7 125.3,155.1 129.6,156.3 133.9,155.5 137.5,155.7 141.2,156.6 145.5,155.0 149.1,153.4 152.8,155.9 157.1,156.6 161.4,156.9 165.0,156.0 168.7,155.6 172.3,158.7 177.8,158.3 181.5,159.5 185.2,156.7 188.8,157.1 192.5,155.7 196.2,154.9 200.4,158.3 205.3,157.5 209.0,156.1 213.9,157.1 217.6,154.8 221.8,157.1 226.1,157.1 229.8,155.1 234.7,157.4 238.3,154.2 243.2,156.3 246.9,156.0 250.5,155.7 254.2,155.8 259.1,155.7 262.8,156.6 267.6,157.7 271.3,158.2 275.0,153.1 278.6,155.5 282.3,156.5 286.0,154.5 290.9,157.6 294.5,157.7 298.2,156.4 303.1,156.6 306.7,156.9 311.0,155.3 315.3,155.7 319.6,156.0 324.5,157.1 328.1,157.6 331.8,157.7 336.1,155.7 339.7,156.3 343.4,155.6 347.1,156.6 351.3,155.3 355.0,155.9 358.7,153.6 362.3,155.7 366.6,156.8 370.9,155.6 374.6,157.4 379.4,155.5 383.7,157.1 387.4,158.6 391.7,154.4 395.3,158.5 400.2,154.4 403.9,153.8 407.5,159.1 411.2,152.3 414.9,157.7 418.5,156.3 422.8,157.2 426.5,157.1 431.4,157.6 436.3,157.3 439.9,157.8 444.2,154.6 447.9,155.2 451.5,157.4 456.4,156.3 460.1,155.3 465.6,157.3 469.2,155.9 473.5,158.4 477.8,155.7 481.5,153.8 485.1,157.4 489.4,157.5 493.1,159.3 498.0,153.8 502.2,156.7 505.9,156.7 509.6,158.4 513.2,156.0 516.9,154.8 520.6,156.4 525.5,157.4 530.3,155.5 534.6,154.9 538.3,158.7"/><text class="ax" x="2" y="208">picks</text><circle class="pk-ok" cx="63.2" cy="204" r="4.5"/><circle class="pk-ok" cx="99.0" cy="204" r="4.5"/><circle class="pk-ok" cx="134.7" cy="204" r="4.5"/><circle class="pk-ok" cx="170.5" cy="204" r="4.5"/><circle class="pk-ok" cx="206.2" cy="204" r="4.5"/><circle class="pk-ok" cx="241.9" cy="204" r="4.5"/><path class="pk-miss" d="M273.7,200 L281.7,208 M281.7,200 L273.7,208"/><path class="pk-miss" d="M309.4,200 L317.4,208 M317.4,200 L309.4,208"/><path class="pk-miss" d="M345.1,200 L353.1,208 M353.1,200 L345.1,208"/><path class="pk-miss" d="M380.9,200 L388.9,208 M388.9,200 L380.9,208"/><path class="pk-miss" d="M416.6,200 L424.6,208 M424.6,200 L416.6,208"/><path class="pk-miss" d="M452.4,200 L460.4,208 M460.4,200 L452.4,208"/><path class="pk-miss" d="M488.1,200 L496.1,208 M496.1,200 L488.1,208"/><path class="pk-miss" d="M523.8,200 L531.8,208 M531.8,200 L523.8,208"/></svg>
+        <p class="read">The sensors keep agreeing, so both lines stay flat. The break is in the controller settings: tcp_offset changed at 13:40:23, two seconds before the first miss.</p>
+      </figure>
+    </div>
+    <aside class="pside">
+      <div class="stamp go"><span class="st">GO</span><span class="sh">Setting restored</span></div>
+      <dl class="kv">
+        <dt>changed at</dt><dd>13:40:23, installation file reloaded</dd>
+        <dt>what</dt><dd>tool offset changed in controller, 23.1 mm</dd>
+        <dt>fix written</dt><dd>tool offset [0.0, 0.0, 180.0] mm</dd>
+        <dt>test picks</dt><dd><span class="picks"><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i></span> 6/6</dd>
+      </dl>
+      
+    </aside>
+  </div>
+  <div class="term rec">
+    <div class="bar"><span>$ kintrace incident --scenario tcp_edit</span><span>tcp_edit_record.txt</span></div>
+<pre>KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : <span class="hi">13:40:23</span>  (lines up with config change at <span class="hi">13:40:23</span>: installation file reloaded)
+   seen in    : controller setting &#x27;tcp_offset&#x27; changed at <span class="hi">13:40:23</span>
+   seen in    : first missed pick at <span class="hi">13:40:25</span>
+
+What changed (6 s check motion)
+  - Tool offset changed in controller: 23.1 mm (x -22.5, y -4.2, z +2.9)
+
+Fix written to controller
+  - tool offset set to [0.0, 0.0, 180.0] mm
+
+Verification (check motion re-run)
+  <span class="ok">[ok  ]</span> Command timing               8 ms vs 8 ms normal
+  <span class="ok">[ok  ]</span> Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  <span class="ok">[ok  ]</span> Camera vs joint encoders     disagreement 1.0x sensor noise
+  <span class="ok">[ok  ]</span> Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  <span class="ok">[ok  ]</span> Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: <span class="ok">GO</span></pre>
+  </div>
+</div>
+<div class="panel" role="tabpanel" id="p-joint_service" aria-labelledby="t-joint_service" tabindex="0" hidden>
+  <div class="pgrid">
+    <div class="pmain">
+      <h3 class="ptitle">A joint came back from service.</h3>
+      <p class="story">Joint 3 is serviced and the arm is power-cycled. Its zero comes back off by under 3 degrees. That is about 14 mm at the fingertip.</p>
+      <figure class="fig">
+        <figcaption class="figcap"><span>sensor disagreement, x sensor noise</span><span class="key"><span class="k-arm">camera vs arm</span><span class="k-tab">camera vs table marker</span><span class="k-pk">pick ok / missed</span></span></figcaption>
+        <svg class="tl" viewBox="0 0 560 232" role="img" aria-labelledby="tl-joint_service-t" preserveAspectRatio="xMidYMid meet"><title id="tl-joint_service-t">Sensor disagreement from 13:40:00 to 13:40:54. Event: maintenance at 13:40:23. Camera vs arm peaks near 25x sensor noise, camera vs table marker near 2x.</title><line class="g1" x1="44" x2="548" y1="156.2" y2="156.2"/><text class="ax" x="38" y="160.2" text-anchor="end">1x</text><line class="g" x1="44" x2="548" y1="104.4" y2="104.4"/><text class="ax" x="38" y="108.4" text-anchor="end">10x</text><line class="g" x1="44" x2="548" y1="46.8" y2="46.8"/><text class="ax" x="38" y="50.8" text-anchor="end">20x</text><line class="axis" x1="44" x2="548" y1="162" y2="162"/><line class="axis" x1="44.0" x2="44.0" y1="162" y2="166"/><text class="ax" x="44.0" y="179" text-anchor="middle">:00</text><line class="axis" x1="135.6" x2="135.6" y1="162" y2="166"/><text class="ax" x="135.6" y="179" text-anchor="middle">:10</text><line class="axis" x1="227.3" x2="227.3" y1="162" y2="166"/><text class="ax" x="227.3" y="179" text-anchor="middle">:20</text><line class="axis" x1="318.9" x2="318.9" y1="162" y2="166"/><text class="ax" x="318.9" y="179" text-anchor="middle">:30</text><line class="axis" x1="410.5" x2="410.5" y1="162" y2="166"/><text class="ax" x="410.5" y="179" text-anchor="middle">:40</text><line class="axis" x1="502.2" x2="502.2" y1="162" y2="166"/><text class="ax" x="502.2" y="179" text-anchor="middle">:50</text><line class="ev" x1="259.3" x2="259.3" y1="12" y2="162"/><text class="evl" x="265.3" y="20">joint service 13:40:23</text><polyline class="ln-tab" points="44.8,155.8 50.9,155.7 55.8,156.8 59.5,157.8 63.8,156.5 68.0,156.2 71.7,156.0 76.0,157.3 80.3,155.6 84.5,158.4 88.2,157.2 92.5,155.8 98.0,156.1 101.6,154.2 105.3,157.0 109.6,157.7 113.2,155.4 118.7,158.4 122.4,157.7 126.7,157.7 130.4,157.3 134.0,154.8 137.7,155.9 142.6,154.1 148.7,157.3 152.3,156.8 156.0,155.8 159.7,153.5 163.3,155.6 167.0,156.0 171.3,156.4 174.9,156.9 179.2,154.3 182.9,156.0 187.8,159.2 191.4,156.0 195.1,156.3 199.4,156.6 203.7,156.7 207.9,156.2 211.6,156.7 215.9,156.3 220.2,155.8 223.8,156.1 228.1,157.6 231.8,156.6 235.4,155.2 239.7,157.7 244.0,156.8 248.3,157.0 251.9,156.4 256.2,157.1 259.9,155.7 261.7,155.9 262.9,155.9 264.1,155.2 265.4,155.8 267.8,157.6 272.1,158.1 277.6,155.2 281.2,155.6 285.5,154.9 289.2,154.7 294.1,156.0 297.7,155.5 301.4,158.8 305.1,155.7 308.7,155.9 312.4,156.0 316.7,155.7 320.3,158.7 324.0,156.5 328.3,156.9 332.0,155.6 335.6,154.9 339.3,157.9 342.9,154.9 346.6,155.8 351.5,155.8 355.8,156.2 360.1,157.2 363.7,156.8 367.4,156.8 371.0,156.6 374.7,157.3 380.8,156.7 384.5,156.0 388.8,157.8 393.7,156.4 397.9,156.4 401.6,158.4 405.3,156.4 408.9,156.5 412.6,157.2 417.5,156.0 421.1,156.5 425.4,156.5 429.7,158.3 434.0,157.7 437.6,157.3 441.3,154.1 445.0,154.9 448.6,157.6 452.9,156.4 457.2,156.7 460.9,157.1 467.0,157.3 471.2,158.5 474.9,155.4 478.6,157.6 482.2,156.5 485.9,155.0 489.6,154.7 494.5,157.1 498.1,157.4 502.4,155.9 506.1,157.2 510.3,156.8 514.6,155.5 518.3,158.1 522.6,156.6 526.8,155.1 530.5,157.4 535.4,155.7 537.8,156.2"/><polyline class="ln-arm" points="44.8,156.6 50.9,155.5 55.8,155.8 59.5,156.3 63.8,155.9 68.0,158.9 71.7,156.8 76.0,157.2 80.3,156.7 84.5,157.5 88.2,155.8 92.5,154.2 98.0,157.0 101.6,157.2 105.3,154.0 109.6,158.6 113.2,156.3 118.7,156.1 122.4,156.7 126.7,156.2 130.4,156.5 134.0,154.2 137.7,151.7 142.6,156.8 148.7,155.7 152.3,155.7 156.0,156.9 159.7,156.6 163.3,156.1 167.0,157.8 171.3,154.3 174.9,156.1 179.2,155.3 182.9,156.2 187.8,157.8 191.4,158.5 195.1,156.3 199.4,158.4 203.7,158.7 207.9,158.6 211.6,155.7 215.9,157.3 220.2,156.7 223.8,155.8 228.1,155.8 231.8,155.7 235.4,157.6 239.7,156.9 244.0,158.6 248.3,158.6 251.9,157.7 256.2,158.7 259.9,157.7 261.7,59.3 262.9,67.2 264.1,65.9 265.4,67.1 267.8,68.1 272.1,60.3 277.6,65.7 281.2,64.9 285.5,34.3 289.2,27.5 294.1,36.5 297.7,70.4 301.4,70.1 305.1,69.1 308.7,67.5 312.4,67.0 316.7,71.5 320.3,47.7 324.0,39.0 328.3,39.4 332.0,58.2 335.6,63.5 339.3,61.9 342.9,56.3 346.6,59.8 351.5,67.0 355.8,36.1 360.1,28.3 363.7,30.0 367.4,62.8 371.0,79.3 374.7,77.0 380.8,74.4 384.5,78.4 388.8,73.1 393.7,36.8 397.9,34.5 401.6,49.8 405.3,68.1 408.9,69.4 412.6,62.7 417.5,67.4 421.1,71.5 425.4,53.4 429.7,34.7 434.0,35.8 437.6,52.2 441.3,62.3 445.0,58.3 448.6,55.2 452.9,54.4 457.2,64.0 460.9,46.7 467.0,26.9 471.2,36.0 474.9,59.0 478.6,66.9 482.2,61.9 485.9,60.3 489.6,61.2 494.5,58.0 498.1,33.1 502.4,27.1 506.1,33.6 510.3,77.4 514.6,73.8 518.3,71.6 522.6,73.0 526.8,73.4 530.5,57.8 535.4,22.8 537.8,22.1"/><text class="ax" x="2" y="208">picks</text><circle class="pk-ok" cx="63.2" cy="204" r="4.5"/><circle class="pk-ok" cx="99.0" cy="204" r="4.5"/><circle class="pk-ok" cx="134.7" cy="204" r="4.5"/><circle class="pk-ok" cx="170.5" cy="204" r="4.5"/><circle class="pk-ok" cx="206.2" cy="204" r="4.5"/><circle class="pk-ok" cx="241.9" cy="204" r="4.5"/><path class="pk-miss" d="M273.7,200 L281.7,208 M281.7,200 L273.7,208"/><path class="pk-miss" d="M309.4,200 L317.4,208 M317.4,200 L309.4,208"/><path class="pk-miss" d="M345.1,200 L353.1,208 M353.1,200 L345.1,208"/><path class="pk-miss" d="M380.9,200 L388.9,208 M388.9,200 L380.9,208"/><path class="pk-miss" d="M416.6,200 L424.6,208 M424.6,200 L416.6,208"/><path class="pk-miss" d="M452.4,200 L460.4,208 M460.4,200 L452.4,208"/><path class="pk-miss" d="M488.1,200 L496.1,208 M496.1,200 L488.1,208"/><path class="pk-miss" d="M523.8,200 L531.8,208 M531.8,200 L523.8,208"/></svg>
+        <p class="read">Camera vs arm jumps at 13:40:23. Camera vs table marker stays flat, so the camera did not move. That leaves the joint, and the pose-dependent shape of the error says which one.</p>
+      </figure>
+    </div>
+    <aside class="pside">
+      <div class="stamp go"><span class="st">GO</span><span class="sh">Joint zero corrected</span></div>
+      <dl class="kv">
+        <dt>changed at</dt><dd>13:40:23, joint service, arm power-cycled</dd>
+        <dt>what</dt><dd>joint encoder zero drifted, elbow joint</dd>
+        <dt>fix written</dt><dd>J3 zero offset +2.911 deg</dd>
+        <dt>test picks</dt><dd><span class="picks"><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i><i class="p-ok" aria-hidden="true"></i></span> 6/6</dd>
+      </dl>
+      
+    </aside>
+  </div>
+  <div class="term rec">
+    <div class="bar"><span>$ kintrace incident --scenario joint_service</span><span>joint_service_record.txt</span></div>
+<pre>KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : <span class="hi">13:40:23</span>  (lines up with maintenance at <span class="hi">13:40:23</span>: joint service, arm power-cycled)
+   seen in    : camera vs arm at <span class="hi">13:40:23</span>
+   seen in    : first missed pick at <span class="hi">13:40:25</span>
+
+What changed (6 s check motion)
+  - Joint encoder zero drifted: elbow joint (J3) off by -2.911 deg (moves the fingertip about 14 mm)
+
+Fix written to controller
+  - J3 zero offset +2.911 deg
+
+Verification (check motion re-run)
+  <span class="ok">[ok  ]</span> Command timing               8 ms vs 8 ms normal
+  <span class="ok">[ok  ]</span> Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  <span class="ok">[ok  ]</span> Camera vs joint encoders     disagreement 1.0x sensor noise
+  <span class="ok">[ok  ]</span> Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  <span class="ok">[ok  ]</span> Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: <span class="ok">GO</span></pre>
+  </div>
+</div>
+<div class="panel" role="tabpanel" id="p-software_update" aria-labelledby="t-software_update" tabindex="0" hidden>
+  <div class="pgrid">
+    <div class="pmain">
+      <h3 class="ptitle">The cell PC got an update.</h3>
+      <p class="story">An update on the cell PC slows the command path. The geometry is fine. Every move lands late, and picks miss.</p>
+      <figure class="fig">
+        <figcaption class="figcap"><span>sensor disagreement, x sensor noise</span><span class="key"><span class="k-arm">camera vs arm</span><span class="k-tab">camera vs table marker</span><span class="k-pk">pick ok / missed</span></span></figcaption>
+        <svg class="tl" viewBox="0 0 560 232" role="img" aria-labelledby="tl-software_update-t" preserveAspectRatio="xMidYMid meet"><title id="tl-software_update-t">Sensor disagreement from 13:40:00 to 13:40:54. Event: software update at 13:40:23. Camera vs arm peaks near 17x sensor noise, camera vs table marker near 2x.</title><line class="g1" x1="44" x2="548" y1="156.2" y2="156.2"/><text class="ax" x="38" y="160.2" text-anchor="end">1x</text><line class="g" x1="44" x2="548" y1="104.4" y2="104.4"/><text class="ax" x="38" y="108.4" text-anchor="end">10x</text><line class="g" x1="44" x2="548" y1="46.8" y2="46.8"/><text class="ax" x="38" y="50.8" text-anchor="end">20x</text><line class="axis" x1="44" x2="548" y1="162" y2="162"/><line class="axis" x1="44.0" x2="44.0" y1="162" y2="166"/><text class="ax" x="44.0" y="179" text-anchor="middle">:00</text><line class="axis" x1="135.6" x2="135.6" y1="162" y2="166"/><text class="ax" x="135.6" y="179" text-anchor="middle">:10</text><line class="axis" x1="227.3" x2="227.3" y1="162" y2="166"/><text class="ax" x="227.3" y="179" text-anchor="middle">:20</text><line class="axis" x1="318.9" x2="318.9" y1="162" y2="166"/><text class="ax" x="318.9" y="179" text-anchor="middle">:30</text><line class="axis" x1="410.5" x2="410.5" y1="162" y2="166"/><text class="ax" x="410.5" y="179" text-anchor="middle">:40</text><line class="axis" x1="502.2" x2="502.2" y1="162" y2="166"/><text class="ax" x="502.2" y="179" text-anchor="middle">:50</text><line class="ev" x1="259.3" x2="259.3" y1="12" y2="162"/><text class="evl" x="265.3" y="20">software update 13:40:23</text><polyline class="ln-tab" points="44.9,157.2 49.2,155.6 53.5,157.3 57.1,157.9 60.8,156.6 64.5,157.3 68.1,158.2 73.0,156.4 77.3,157.2 81.0,156.1 85.2,156.9 90.1,155.6 94.4,158.3 98.7,158.9 103.0,154.1 107.2,157.1 111.5,156.6 115.2,156.6 118.8,155.0 122.5,156.1 126.2,157.3 131.1,155.9 134.7,156.2 139.6,156.6 143.9,157.9 148.8,157.5 154.9,155.8 158.6,157.7 162.2,156.3 165.9,156.8 169.5,156.1 173.2,156.2 176.9,156.9 180.5,155.2 185.4,154.9 189.1,156.6 193.4,156.5 197.0,156.9 200.7,155.9 205.0,157.1 209.3,155.6 213.5,155.6 217.2,157.4 222.1,155.3 225.8,156.7 229.4,157.3 233.1,158.3 236.7,157.8 240.4,157.2 244.7,155.9 249.0,156.4 253.2,156.3 256.9,157.0 261.2,156.4 264.9,157.8 268.5,154.5 272.2,156.0 275.8,156.8 279.5,155.9 283.2,154.5 287.5,154.5 291.1,157.2 294.8,154.6 299.1,153.7 303.3,157.2 308.2,156.1 311.9,156.0 315.6,155.1 319.2,156.9 322.9,156.7 326.6,157.0 330.8,158.0 335.1,154.6 338.8,157.6 342.4,156.1 346.7,156.6 351.0,158.0 354.7,157.4 359.5,155.8 365.7,155.8 369.9,153.6 376.0,154.5 379.7,157.9 384.6,156.9 388.3,157.7 391.9,156.0 395.6,156.8 399.9,155.6 403.5,154.3 407.2,156.1 411.5,156.9 416.4,154.9 421.2,156.6 424.9,153.6 428.6,156.3 432.9,155.3 437.1,156.8 440.8,158.5 444.5,157.2 448.1,156.5 451.8,154.8 456.7,156.5 460.3,156.0 464.6,157.5 468.3,156.3 473.2,156.6 476.8,156.7 480.5,154.4 484.8,156.7 490.3,155.8 493.9,156.0 497.6,157.7 501.9,155.0 505.5,158.8 509.2,155.4 514.1,157.5 518.4,156.2 522.7,156.5 526.9,157.0 530.6,154.6 534.9,156.1 538.5,152.8"/><polyline class="ln-arm" points="44.9,156.5 49.2,156.5 53.5,156.2 57.1,158.1 60.8,155.9 64.5,156.3 68.1,153.7 73.0,157.2 77.3,157.1 81.0,155.3 85.2,154.6 90.1,157.0 94.4,157.3 98.7,157.9 103.0,158.4 107.2,155.7 111.5,158.0 115.2,157.0 118.8,157.9 122.5,157.8 126.2,156.6 131.1,156.3 134.7,155.3 139.6,157.5 143.9,157.6 148.8,155.9 154.9,156.7 158.6,156.5 162.2,156.6 165.9,154.6 169.5,156.7 173.2,158.2 176.9,156.1 180.5,158.5 185.4,154.7 189.1,157.4 193.4,152.9 197.0,157.2 200.7,156.8 205.0,156.6 209.3,156.9 213.5,156.9 217.2,156.4 222.1,155.8 225.8,157.7 229.4,157.4 233.1,157.5 236.7,156.2 240.4,155.9 244.7,157.6 249.0,157.6 253.2,156.6 256.9,156.4 261.2,61.6 264.9,157.2 268.5,156.4 272.2,155.7 275.8,155.9 279.5,156.7 283.2,155.4 287.5,157.2 291.1,156.1 294.8,158.5 299.1,153.8 303.3,157.3 308.2,155.6 311.9,155.6 315.6,157.0 319.2,157.3 322.9,157.9 326.6,156.0 330.8,154.9 335.1,156.9 338.8,154.8 342.4,157.2 346.7,156.7 351.0,156.0 354.7,156.3 359.5,156.3 365.7,156.0 369.9,155.6 376.0,157.7 379.7,156.3 384.6,157.2 388.3,156.5 391.9,157.0 395.6,157.6 399.9,156.7 403.5,158.0 407.2,157.1 411.5,155.0 416.4,155.6 421.2,158.1 424.9,157.4 428.6,154.8 432.9,154.4 437.1,156.1 440.8,156.8 444.5,155.2 448.1,157.1 451.8,156.5 456.7,158.3 460.3,154.5 464.6,154.1 468.3,157.4 473.2,154.3 476.8,159.0 480.5,156.8 484.8,158.0 490.3,157.0 493.9,157.7 497.6,157.5 501.9,158.3 505.5,156.9 509.2,154.9 514.1,155.6 518.4,157.1 522.7,155.8 526.9,157.1 530.6,155.6 534.9,158.5 538.5,155.9"/><text class="ax" x="2" y="208">picks</text><circle class="pk-ok" cx="63.2" cy="204" r="4.5"/><circle class="pk-ok" cx="99.0" cy="204" r="4.5"/><circle class="pk-ok" cx="134.7" cy="204" r="4.5"/><circle class="pk-ok" cx="170.5" cy="204" r="4.5"/><circle class="pk-ok" cx="206.2" cy="204" r="4.5"/><circle class="pk-ok" cx="241.9" cy="204" r="4.5"/><path class="pk-miss" d="M273.7,200 L281.7,208 M281.7,200 L273.7,208"/><path class="pk-miss" d="M309.4,200 L317.4,208 M317.4,200 L309.4,208"/><path class="pk-miss" d="M345.1,200 L353.1,208 M353.1,200 L345.1,208"/><path class="pk-miss" d="M380.9,200 L388.9,208 M388.9,200 L380.9,208"/><path class="pk-miss" d="M416.6,200 L424.6,208 M424.6,200 L416.6,208"/><path class="pk-miss" d="M452.4,200 L460.4,208 M460.4,200 L452.4,208"/><path class="pk-miss" d="M488.1,200 L496.1,208 M496.1,200 L488.1,208"/><path class="pk-miss" d="M523.8,200 L531.8,208 M531.8,200 L523.8,208"/></svg>
+        <p class="read">Both geometry lines stay flat after one frame at the update. The break is in command timing: 93 ms against 8 ms normal. No number written to the controller fixes that.</p>
+      </figure>
+    </div>
+    <aside class="pside">
+      <div class="stamp nogo"><span class="st">NO-GO</span><span class="sh">Needs a person</span></div>
+      <dl class="kv">
+        <dt>changed at</dt><dd>13:40:23, cell PC updated</dd>
+        <dt>what</dt><dd>commands arriving late, +85 ms slower than normal</dd>
+        <dt>fix written</dt><dd>none. Escalated to a person.</dd>
+        <dt>test picks</dt><dd><span class="picks"><i class="p-miss" aria-hidden="true"></i><i class="p-miss" aria-hidden="true"></i><i class="p-miss" aria-hidden="true"></i><i class="p-miss" aria-hidden="true"></i><i class="p-miss" aria-hidden="true"></i><i class="p-miss" aria-hidden="true"></i></span> 0/6</dd>
+      </dl>
+      <ul class="block"><li>commands are arriving late; needs a software or network fix</li><li>test picks still missing</li></ul>
+    </aside>
+  </div>
+  <div class="term rec">
+    <div class="bar"><span>$ kintrace incident --scenario software_update</span><span>software_update_record.txt</span></div>
+<pre>KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : <span class="hi">13:40:23</span>  (lines up with software update at <span class="hi">13:40:23</span>: cell PC updated)
+   seen in    : command timing at <span class="hi">13:40:23</span>
+   seen in    : first missed pick at <span class="hi">13:40:25</span>
+
+What changed (6 s check motion)
+  - Commands arriving late: +85 ms slower than normal
+  test picks: 0/6 ok
+
+STATUS: <span class="bad">NO-GO</span>  (commands are arriving late; needs a software or network fix; test picks still missing)</pre>
+  </div>
+</div>
+<div class="panel" role="tabpanel" id="p-drift" aria-labelledby="t-drift" tabindex="0" hidden>
+  <div class="pgrid">
+    <div class="pmain">
+      <h3 class="ptitle">Nothing happened. Yet.</h3>
+      <p class="story">No crash, no edit, no service. A camera mount sags. A joint creeps. Picks still land, so nobody looks. Then they stop landing. <code>kintrace watch</code> reads the logs the robot already writes, with no check motion, scores the robot's physical health every 10 s, and warns before the first miss.</p>
+      <figure class="fig">
+        <figcaption class="figcap"><span>physical health score, 0 to 100 · simulated camera sag, sped up</span><span>measured</span></figcaption>
+        <svg viewBox="0 0 640 230" class="tl" role="img" aria-label="Health score falls from 98 to 0 as the camera sags. Kintrace warns at 60 s with health 71, the first pick misses at 115 s." style="width:100%;height:auto;font-family:var(--mono)">
+<line x1="40" x2="628" y1="196.0" y2="196.0" stroke="var(--rule)"/><text x="34" y="200.0" text-anchor="end" fill="var(--faint)" font-size="11">0</text><line x1="40" x2="628" y1="153.0" y2="153.0" stroke="var(--rule)"/><text x="34" y="157.0" text-anchor="end" fill="var(--faint)" font-size="11">25</text><line x1="40" x2="628" y1="110.0" y2="110.0" stroke="var(--rule)"/><text x="34" y="114.0" text-anchor="end" fill="var(--faint)" font-size="11">50</text><line x1="40" x2="628" y1="67.0" y2="67.0" stroke="var(--rule)"/><text x="34" y="71.0" text-anchor="end" fill="var(--faint)" font-size="11">75</text><line x1="40" x2="628" y1="24.0" y2="24.0" stroke="var(--rule)"/><text x="34" y="28.0" text-anchor="end" fill="var(--faint)" font-size="11">100</text><text x="40.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">0s</text><text x="124.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">30s</text><text x="208.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">60s</text><text x="292.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">90s</text><text x="376.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">120s</text><text x="460.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">150s</text><text x="544.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">180s</text><text x="628.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">210s</text>
+<rect x="208.2" y="24" width="153.8" height="172" fill="var(--signal)" opacity=".10"/>
+<polyline points="68.2,26.8 96.2,26.1 124.2,28.8 152.2,45.2 180.2,57.5 208.2,73.9 236.2,92.5 264.2,108.1 292.2,124.3 320.2,139.6 348.2,154.9 376.2,176.0 404.2,188.4 432.2,196.0 460.2,196.0 488.2,196.0 516.2,196.0 544.2,196.0 572.2,196.0 600.2,196.0" fill="none" stroke="var(--ink)" stroke-width="2.2"/>
+<line x1="208.2" x2="208.2" y1="24" y2="196" stroke="var(--signal)" stroke-width="2"/>
+<text x="212.2" y="16" fill="var(--signal-ink)" font-size="11" font-weight="600">WARNING 06:01:00</text>
+<line x1="362.0" x2="362.0" y1="24" y2="196" stroke="var(--nogo)" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="366.0" y="36" fill="var(--nogo)" font-size="11">first miss 06:01:55</text>
+</svg>
+      </figure>
+    </div>
+    <aside class="pside">
+      <div class="stamp build"><span class="st">WARN</span><span class="sh">55 s before the first miss</span></div>
+      <dl class="kv">
+        <dt>warned before first miss</dt><dd>19 / 20 drifts</dd>
+        <dt>cause named right</dt><dd>20 / 20</dd>
+        <dt>error when it warns</dt><dd>2.5 mm (first miss at 6.5 mm)</dd>
+        <dt>false alarms</dt><dd>0 in 230 healthy windows</dd>
+      </dl>
+      <p class="story small">Drift is sped up in the simulator so a run takes minutes. Real sag and creep take days or weeks, and the warning comes that much earlier.</p>
+    </aside>
+  </div>
+  <div class="term rec">
+    <div class="bar"><span>$ kintrace watch --sim camera_sag --seed 3</span><span>watch output</span></div>
+<pre>KINTRACE WATCH  simulated camera_sag (seed 3)
+================================================================
+window 10 s, tolerance 8 mm sideways / 15 mm up-down, warn at 15% used
+
+  time      health  camera  arm    cause-so-far
+  06:00:10   98.4   0.14mm  0.05mm  -
+  06:00:30   97.2   0.17mm  0.07mm  -
+  06:00:50   80.5   1.75mm  0.05mm  camera
+  06:01:00   71.0   2.60mm  0.03mm  camera  &lt;- warning
+  06:01:10   60.2   3.48mm  0.14mm  camera
+  06:01:30   41.7   5.17mm  0.15mm  camera
+  06:01:50   23.9   6.92mm  0.08mm  camera
+  06:02:10    4.4   8.64mm  0.03mm  camera
+  06:02:30    0.0  10.41mm  0.07mm  camera
+  06:02:50    0.0  12.10mm  0.12mm  camera
+  06:03:10    0.0  13.88mm  0.03mm  camera
+  06:03:30    0.0  15.53mm  0.06mm  camera
+  06:03:50    0.0  17.28mm  0.16mm  camera
+
+WARNING at 06:01:00  health 71/100
+  Camera is moving (sagging mount). Parts now appear 2.6 mm off, growing 5.08 mm/min.
+  Picks likely start missing in about 0.8 min (at 70% of tolerance), at the current rate.
+  Next: Run the check and fix at the next stop (writes a new camera calibration), and tighten the camera mount.
+
+(simulation: first missed pick at 06:01:55)</pre>
+  </div>
+</div>
+    <div class="after">
+      <a class="btn ghost" href="play/">Crash it yourself →</a>
+      <a class="btn ghost" href="demo/">Open the full demo →</a>
+      <p>Arrow keys move between tabs.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="layers" aria-labelledby="lay-h">
+  <div class="wrap">
+    <p class="label"><b>// 02</b> · Layers</p>
+    <h2 id="lay-h">Two layers. Two different jobs.</h2>
+    <p class="lede">Ember's line is "Know what changed. Know what failed." It is a good line, and for software it is the right one: releases, logs, telemetry, fleet hardware, for the engineers who build robots. Kintrace sits one layer down. It asks whether the robot's body still matches what the software believes, for the teams who run robots in production.</p>
+
+    <div class="layers" role="group" aria-label="Layer diagram">
+      <div class="layer">
+        <div class="ln">// software layer<b>Ember</b></div>
+        <div class="w">releases · logs · telemetry · fleet health · hardware scheduling</div>
+        <div class="q">"Which release broke it?"</div>
+      </div>
+      <div class="layer phys">
+        <div class="ln">// physical layer<b>Kintrace</b></div>
+        <div class="w">camera pose · tool offset · joint zeros · command timing</div>
+        <div class="q">"Is this robot physically what its software thinks it is? If not, what moved? Put it back."</div>
+      </div>
+      <div class="layer body">the robot: arm · camera · gripper · controller</div>
+    </div>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th scope="col"><span class="sr">Question</span></th><th scope="col">Ember · software layer</th><th scope="col">Kintrace · physical layer</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Built for</th><td data-h="Ember">Engineering teams who build robots</td><td data-h="Kintrace">Teams who run robots in production</td></tr>
+          <tr><th scope="row">Core question</th><td data-h="Ember">What changed in the software, and what failed?</td><td data-h="Kintrace">What changed in the robot itself, and what value puts it back?</td></tr>
+          <tr><th scope="row">Watches</th><td data-h="Ember">Releases, logs, telemetry, fleet status</td><td data-h="Kintrace">Camera vs arm, camera vs table marker, fingertip, command timing, controller settings</td></tr>
+          <tr><th scope="row">After a crash</th><td data-h="Ember">Shows the timeline, the release and the error</td><td data-h="Kintrace">Names the physical cause in mm, deg or ms, and the moment it changed</td></tr>
+          <tr><th scope="row">Touches the robot</th><td data-h="Ember">No. It observes.</td><td data-h="Kintrace">Yes. One 6.3 s check motion, then writes the fix and runs 6 test picks.</td></tr>
+          <tr><th scope="row">Ends with</th><td data-h="Ember">An engineer who knows where to look</td><td data-h="Kintrace">A GO or NO-GO record for the cell</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="wedge">Ember tells you something changed. <span>Kintrace puts the robot back.</span></p>
+    <p class="lede">You can run both. Kintrace reads a simple log format today, and a ROS 2 / MCAP reader is next, so it can sit next to Ember or Foxglove as a plug-in.</p>
+
+    <div class="onlyh"><span>What only Kintrace does</span><span>built = runs in our simulator today</span></div>
+    <div class="only">
+      <div><span class="no">01</span><h3>Physical cause, with size</h3><p>Camera moved 21.2 mm. J3 zero off 2.911 deg. Commands 85 ms late. A named part and a number.</p><span class="st-tag built">built · sim</span></div>
+      <div><span class="no">02</span><h3>When it changed</h3><p>Split from the robot's own log and matched to the logged stop, edit, service or update. Crash onset within 0.01 s, median.</p><span class="st-tag built">built · sim</span></div>
+      <div><span class="no">03</span><h3>The fix, written</h3><p>Camera calibration, tool offset and joint zeros go back to the controller. No re-teaching. Latency goes to a person.</p><span class="st-tag built">built · sim</span></div>
+      <div><span class="no">04</span><h3>Signed GO / NO-GO certificate</h3><p>Every GO / NO-GO record is signed with ed25519. <code>kintrace verify</code> checks it, and a record edited after signing fails. A fleet can hand it to a customer, lender or insurer.</p><span class="st-tag built">built · tested</span></div>
+      <div><span class="no">05</span><h3>Always-on physical health score</h3><p><code>kintrace watch</code> scores every robot from passive logs, with no check motion, and flags slow drift before picks fail.</p><span class="st-tag built">built · sim</span></div>
+      <div><span class="no">06</span><h3>Cell ledger</h3><p>Every change and every record per cell. Which cells drift, how often, and why. It gets more useful with every incident.</p><span class="st-tag built">built · sim data</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="thesis" aria-labelledby="th-h">
+  <div class="wrap">
+    <p class="label"><b>// 03</b> · Why</p>
+    <h2 id="th-h">Every robot drifts. Nobody can say what moved.</h2>
+    <p class="lede">A bumped camera, a bent finger, an edited tool offset, a joint that came back from service off zero, a slow cell PC. From the outside all five look the same: the robot starts missing. Then someone drives out and checks each thing by hand.</p>
+    <div class="faults" role="group" aria-label="Five faults, one symptom">
+      <div class="fault"><b>Camera bumped</b><span>~20 mm miss</span></div>
+      <div class="fault"><b>Gripper bent</b><span>~20 mm miss</span></div>
+      <div class="fault"><b>Tool offset edited</b><span>~20 mm miss</span></div>
+      <div class="fault"><b>Joint zero off</b><span>~20 mm miss</span></div>
+      <div class="fault"><b>Commands late</b><span>~20 mm miss</span></div>
+    </div>
+    <div class="same">5 causes → 1 symptom. The miss alone can't tell you which.</div>
+    <div class="stats">
+      <div class="stat"><div class="n">~5M</div><p>industrial robots working today. 600K+ more installed each year.</p><span class="src">IFR World Robotics</span></div>
+      <div class="stat"><div class="n">$1.4T</div><p>a year lost to unplanned downtime by the 500 largest manufacturers. 11% of revenue.</p><span class="src">Siemens, True Cost of Downtime 2024</span></div>
+      <div class="stat"><div class="n">$2.3M</div><p>per hour for an idle automotive line.</p><span class="src">Siemens, True Cost of Downtime 2024</span></div>
+      <div class="stat"><div class="n">$1.5-3K</div><p>for one truck roll to check a cell by hand.</p><span class="src">Rough estimate</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="system" aria-labelledby="sys-h">
+  <div class="wrap">
+    <p class="label"><b>// 04</b> · System</p>
+    <h2 id="sys-h">Find. Check. Fix. Certify.</h2>
+    <p class="lede">A healthy robot's sensors agree. The joints follow the commands after a fixed delay. The camera sees the wrist where the encoders say it is. A table marker stays where it was bolted. Each fault breaks a different agreement in a different shape. Kintrace fits the one explanation that brings the error back down to sensor noise. There is no AI model inside, so the same log always gives the same answer.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="op">FIND · from logs</span>
+        <h3>When</h3>
+        <p>Splits the log where the sensors stopped agreeing and matches it to the logged event: a protective stop, a setting edit, a service, an update.</p>
+<pre class="ascii" aria-hidden="true">disagreement
+ 20x |        +------
+     |        |
+  1x |--------+
+     +--------+------ t
+          13:40:23
+       protective stop</pre>
+        <div class="spec"><div><span>onset error, crash</span><span>0.01 s</span></div><div><span>extra sensors</span><span>0</span></div></div>
+      </div>
+      <div class="step">
+        <span class="op">CHECK · 6 s motion</span>
+        <h3>What</h3>
+        <p>The arm runs 8 poses facing the camera. The fixed table marker separates a moved camera from a drifted joint. The fingertip is measured directly.</p>
+<pre class="ascii" aria-hidden="true"> (o) camera
+   \
+    \      o---+ wrist
+     \    /    |
+ [#]  \  o     v tip
+ table   |
+ marker _|_  8 poses
+             95 frames</pre>
+        <div class="spec"><div><span>check length</span><span>6.3 s</span></div><div><span>camera size error</span><span>0.18 mm</span></div></div>
+      </div>
+      <div class="step">
+        <span class="op">FIX · to controller</span>
+        <h3>Restore</h3>
+        <p>Writes the values that put the cell back: camera calibration, tool offset, joint zero offsets. Command delay can't be fixed with a number, so it goes to a person.</p>
+<pre class="ascii" aria-hidden="true">camera_extrinsic  &lt;- refit
+tcp_offset        &lt;- [-2.7, 24.0,
+                      183.8] mm
+joint_zero[J3]    &lt;- +2.911 deg
+latency           -> escalate</pre>
+        <div class="spec"><div><span>tool size error</span><span>0.29 mm</span></div><div><span>joint size error</span><span>0.003°</span></div></div>
+      </div>
+      <div class="step">
+        <span class="op">CERTIFY · re-check</span>
+        <h3>GO</h3>
+        <p>Runs the check again with the new values, then 6 test picks. The record says what changed, when, what was written, and GO or NO-GO.</p>
+<pre class="ascii" aria-hidden="true">[ok] timing
+[ok] table marker
+[ok] camera vs joints
+[ok] fingertip
+picks 6/6 ...... GO</pre>
+        <div class="spec"><div><span>test picks</span><span>6</span></div><div><span>right GO / NO-GO</span><span>50 / 50</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="evidence" aria-labelledby="ev-h">
+  <div class="wrap">
+    <p class="label"><b>// 05</b> · Evidence</p>
+    <h2 id="ev-h">Every number here is measured.</h2>
+    <p class="lede">All from our simulator of a UR5e-class pick cell, with every fault sized to cause the same ~20 mm miss. Each number comes from a file in the repo. Run it yourself: <code>python -m kintrace bench</code>.</p>
+    <div class="ev">
+      <div><div class="n">50/50</div><p>incidents with the right cause and the right GO / NO-GO. Crash, tool edit, joint service, software update, healthy. 10 each.</p><span class="src">bench_out/incident_bench.json</span></div>
+      <div><div class="n">120/120</div><p>right cause across five injected faults. Our dashboard-style baseline got 83/120.</p><span class="src">bench_out/bench.json</span></div>
+      <div><div class="n">19/20</div><p>slow drifts (camera sag, joint creep) flagged before the first missed pick, at about 2.5 mm of error. Cause right in 20/20.</p><span class="src">bench_out/watch_bench.json</span></div>
+      <div><div class="n">0</div><p>false alarms on healthy robots, and 0 in 230 healthy watch windows.</p><span class="src">bench_out/bench.json</span></div>
+      <div><div class="n">0.01 s</div><p>median error on when a crash happened.</p><span class="src">bench_out/incident_bench.json</span></div>
+      <div><div class="n">0.18 mm</div><p>median error on how far the camera moved.</p><span class="src">bench_out/bench.json</span></div>
+      <div><div class="n">0.29 mm</div><p>median error on how far the fingertip moved.</p><span class="src">bench_out/bench.json</span></div>
+      <div><div class="n">0.003°</div><p>median error on a joint zero offset.</p><span class="src">bench_out/bench.json</span></div>
+    </div>
+    <dl class="limits">
+      <dt>Stress</dt><dd>100% right cause down to 8 mm faults and at 3x camera noise.</dd>
+      <dt>Edge</dt><dd>At 5 mm a bent tool doesn't make picks fail, so Kintrace reads the cell as healthy.</dd>
+      <dt>Limits</dt><dd>We built the simulator and the baseline. Real sensors have biases and dropouts. No real-robot results yet. Next is the same faults, caused on purpose, on a real arm at CMU.</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="sec" id="rig" aria-labelledby="rig-h">
+  <div class="wrap">
+    <p class="label"><b>// 06</b> · Physical prototype</p>
+    <h2 id="rig-h">We crash it on purpose. Live.</h2>
+    <p class="lede">A desk rig anyone can rebuild: an SO-101 arm, a webcam and printed AprilTags. We break it in front of you, and Kintrace says what we did.</p>
+    <div class="rig">
+<pre class="ascii" role="img" aria-label="Drawing of the desk rig: a webcam on a clamp looks at an SO-101 arm with a tag on its wrist, a tag on its pointer tip, and four tags taped to the desk.">
+ (o) webcam on a clamp
+   .
+    .   it watches three things:
+     .    [1] wrist tag    where the arm is
+      .   [2] tip flag     where the fingertip is
+       .  [3] desk tags    did the camera move?
+        .
+         .           [1]
+          .       o-------+
+           .     /        |
+            .   /         v
+             . o         [2] pointer tip
+              /|
+             / |   SO-101 arm
+  [3]      _/__|_                     [3]
+ =========|______|========================
+                 desk
+</pre>
+      <div>
+        <div class="bom" role="group" aria-label="Parts">
+          <div><span>SO-101 follower arm</span><span>open source, LeRobot</span></div>
+          <div><span>USB webcam</span><span>fixed on a clamp</span></div>
+          <div><span>AprilTags, 36h11</span><span>printed on paper</span></div>
+          <div><span>Pointer on the jaw</span><span>stands in for a tool</span></div>
+          <div><span>Total</span><span>about $300-500</span></div>
+        </div>
+        <ul class="breaks" aria-label="What we break live">
+          <li>bump the camera</li>
+          <li>bend the pointer</li>
+          <li>edit the tool offset in rig.json</li>
+          <li>shift a joint zero</li>
+          <li>hold every command back (--add-latency-ms)</li>
+        </ul>
+        <div class="status-now"><b>Status: being built now</b>The rig software is written (<code>kintrace rig commission</code>, <code>capture</code>, <code>check</code>) and runs in a dry-run sim. It has not run on the real arm yet. When it does, the results go on this page.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact" aria-labelledby="ct-h">
+  <div class="wrap">
+    <p class="label"><b>// 07</b> · Contact</p>
+    <h2 id="ct-h">Send us a crash.</h2>
+    <p class="lede">We want to talk to robot fleets, robots-as-a-service teams and integrators who lose hours after crashes and changes. Send a log, or let us run Kintrace on one cell.</p>
+    <div class="ctas">
+      <a class="btn" href="mailto:rithiksatarla@gmail.com?subject=Kintrace">Email us →</a>
+      <!-- TODO(founder): replace https://github.com/ with the real Kintrace repo URL -->
+      <a class="btn ghost" href="https://github.com/">Code on GitHub</a>
+    </div>
+    <div class="mailbox"><span>email</span><span class="mail">rithiksatarla@gmail.com</span></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap"><span>KINTRACE · 2026</span><span>Harvard Innovation Labs</span><span>All results are from simulation. Real-robot results coming.</span></div>
+</footer>
+
+<script>
+(function(){
+  var list = document.querySelector('[role="tablist"]');
+  if (!list) return;
+  var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+  function select(tab, focus){
+    tabs.forEach(function(t){
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach(function(t, i){
+    t.addEventListener('click', function(){ select(t, false); });
+    t.addEventListener('keydown', function(e){
+      var n = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') n = tabs[0];
+      else if (e.key === 'End') n = tabs[tabs.length - 1];
+      if (n){ e.preventDefault(); select(n, true); }
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+KINTRACE  diagnosis of tcp_config.npz
+============================================================
+Sensor agreement checks
+  [ok  ] Command timing             8 ms delay vs 8 ms normal
+  [FAIL] Controller settings        tool offset or camera calibration was edited
+  [ok  ] Camera vs joint encoders   disagreement 1.0x sensor noise
+  [FAIL] Pick success               0% vs 100% normal
+
+Verdict: TOOL OFFSET CHANGED IN CONTROLLER   (direct measurement)
+  size : 16.6 mm (x +14.9, y +6.6, z -3.0)
+  fix  : Restore tool offset to [0.0, 0.0, 180.0] mm, unless the tool was changed on purpose.

@@ -1,0 +1,12 @@
+KINTRACE  diagnosis of tool_bent.npz
+============================================================
+Sensor agreement checks
+  [ok  ] Command timing             8 ms delay vs 8 ms normal
+  [ok  ] Controller settings        match last known-good
+  [ok  ] Camera vs joint encoders   disagreement 1.0x sensor noise
+  [FAIL] Pick success               0% vs 100% normal
+
+Verdict: GRIPPER / TOOL BENT   confidence 98%
+  size : fingertip 24.5 mm from where the controller thinks it is (x -23.3, y +6.8, z +3.2 in the tool frame)
+  fix  : Straighten or replace the gripper finger. Short-term: set tool offset to [-23.3, 6.8, 183.2] mm so picks land again.
+  (resolved with the 1.2 s probe motion)

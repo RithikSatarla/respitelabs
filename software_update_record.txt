@@ -1,0 +1,11 @@
+KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : 13:40:23  (lines up with software update at 13:40:23: cell PC updated)
+   seen in    : command timing at 13:40:23
+   seen in    : first missed pick at 13:40:25
+
+What changed (6 s check motion)
+  - Commands arriving late: +85 ms slower than normal
+  test picks: 0/6 ok
+
+STATUS: NO-GO  (commands are arriving late; needs a software or network fix; test picks still missing)

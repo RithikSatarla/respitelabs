@@ -1,0 +1,24 @@
+KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : 13:40:23  (lines up with protective stop at 13:40:23: collision detected, arm stopped)
+   seen in    : camera vs arm at 13:40:23
+   seen in    : camera vs table marker at 13:40:23
+   seen in    : first missed pick at 13:40:25
+
+What changed (6 s check motion)
+  - Camera moved: 21.2 mm, 0.11 deg (parts appear 23 mm off in the pick area)
+  - Gripper / tool bent: fingertip moved 24.4 mm (x -2.7, y +24.0, z +3.8)
+
+Fix written to controller
+  - camera calibration updated
+  - tool offset set to [-2.7, 24.0, 183.8] mm
+
+Verification (check motion re-run)
+  [ok  ] Command timing               8 ms vs 8 ms normal
+  [ok  ] Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  [ok  ] Camera vs joint encoders     disagreement 1.0x sensor noise
+  [ok  ] Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  [ok  ] Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: GO

@@ -1,0 +1,21 @@
+KINTRACE  recommission record, Cell 3
+================================================================
+Changed at   : 13:40:23  (lines up with config change at 13:40:23: installation file reloaded)
+   seen in    : controller setting 'tcp_offset' changed at 13:40:23
+   seen in    : first missed pick at 13:40:25
+
+What changed (6 s check motion)
+  - Tool offset changed in controller: 23.1 mm (x -22.5, y -4.2, z +2.9)
+
+Fix written to controller
+  - tool offset set to [0.0, 0.0, 180.0] mm
+
+Verification (check motion re-run)
+  [ok  ] Command timing               8 ms vs 8 ms normal
+  [ok  ] Camera vs fixed cell marker  table marker where it should be (1.0x noise)
+  [ok  ] Camera vs joint encoders     disagreement 1.0x sensor noise
+  [ok  ] Fingertip vs known-good      fingertip 0.1 mm from its known-good position
+  [ok  ] Tool offset setting          matches known-good
+  test picks: 6/6 ok
+
+STATUS: GO

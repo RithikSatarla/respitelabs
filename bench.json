@@ -1,0 +1,1239 @@
+{
+  "summary": {
+    "n_runs": 120,
+    "dashboard_acc": 0.6916666666666667,
+    "kintrace_passive_acc": 0.8333333333333334,
+    "kintrace_acc": 1.0,
+    "per_class": {
+      "none": {
+        "dashboard": 1.0,
+        "passive": 1.0,
+        "kintrace": 1.0
+      },
+      "camera_moved": {
+        "dashboard": 0.95,
+        "passive": 1.0,
+        "kintrace": 1.0
+      },
+      "tool_bent": {
+        "dashboard": 0.6,
+        "passive": 0.0,
+        "kintrace": 1.0
+      },
+      "tcp_config": {
+        "dashboard": 0.4,
+        "passive": 1.0,
+        "kintrace": 1.0
+      },
+      "encoder_bias": {
+        "dashboard": 0.2,
+        "passive": 1.0,
+        "kintrace": 1.0
+      },
+      "latency": {
+        "dashboard": 1.0,
+        "passive": 1.0,
+        "kintrace": 1.0
+      }
+    },
+    "size_err_median": {
+      "camera_moved": 0.17724608793777116,
+      "tool_bent": 0.29250306646965585,
+      "tcp_config": 1.3766765505351941e-14,
+      "encoder_bias": 0.002750931864838435,
+      "latency": 0.013559689615636472
+    },
+    "two_fault_both_found": 1.0,
+    "dashboard_confusion": [
+      [
+        20,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        19,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        12,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        12,
+        8,
+        0,
+        0
+      ],
+      [
+        1,
+        15,
+        0,
+        0,
+        4,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        20
+      ]
+    ],
+    "kintrace_confusion": [
+      [
+        20,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        20,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        20,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        20,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        20,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        20
+      ]
+    ],
+    "classes": [
+      "none",
+      "camera_moved",
+      "tool_bent",
+      "tcp_config",
+      "encoder_bias",
+      "latency"
+    ],
+    "seconds": 238.58723258972168
+  },
+  "rows": [
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "none",
+      "dashboard": "none",
+      "passive": "none",
+      "kintrace": "none",
+      "probe_used": false,
+      "size_err": null,
+      "missed_picks": 0
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.1828489408247791,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.17164323505076323,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "encoder_bias",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.1448413764698322,
+      "missed_picks": 11
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.08488498684374966,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.18713603900074563,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.09058046312329267,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.21174400079066652,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.23431639411781896,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.08030190039320255,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.20655334383270577,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.06858177773730335,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.26957523572946174,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.3990478042576977,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.12983944718784723,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.23931432264434316,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.2385804597872418,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.15128606986043994,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.1417599896594624,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.11880042964561824,
+      "missed_picks": 14
+    },
+    {
+      "truth": "camera_moved",
+      "dashboard": "camera_moved",
+      "passive": "camera_moved",
+      "kintrace": "camera_moved",
+      "probe_used": false,
+      "size_err": 0.4049195041000823,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.3247396009399791,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.7182401958785245,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.5922047638295134,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.21880078098799616,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.29625626338436034,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.2051930215709473,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.4435861869691199,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.06804235996885591,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.323820244370632,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.633023815869897,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.24429721081436323,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.36410625305891564,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.3273972094978148,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.22311710596786632,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.16910356909498145,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.14728162543869736,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tcp_config",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.10656950171273694,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.6014403851922286,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.2887498695549513,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tool_bent",
+      "dashboard": "tool_bent",
+      "passive": "needs_probe",
+      "kintrace": "tool_bent",
+      "probe_used": true,
+      "size_err": 0.22455867008123956,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 4.440892098500626e-16,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.865174681370263e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.0658141036401503e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 3.552713678800501e-15,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.1546319456101628e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.7763568394002505e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.965094753586527e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.7763568394002505e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.7763568394002505e-15,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.2434497875801753e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.3322676295501878e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.199040866595169e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 5.329070518200751e-15,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 2.842170943040401e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 2.220446049250313e-15,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.4210854715202004e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.6264767310758543e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tcp_config",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 2.3092638912203256e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 2.1649348980190553e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "tcp_config",
+      "dashboard": "tool_bent",
+      "passive": "tcp_config",
+      "kintrace": "tcp_config",
+      "probe_used": false,
+      "size_err": 1.9539925233402755e-14,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.012459685895796824,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.000847563696975584,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0005258076851197835,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "encoder_bias",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0033693114053452433,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.001509493318153421,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "none",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0034460561933156164,
+      "missed_picks": 0
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.003448524450931245,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "encoder_bias",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0002183042916916733,
+      "missed_picks": 9
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.011588531582392925,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.005231997076704076,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0031896283914791823,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0006902050803101467,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.007147060036586161,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "encoder_bias",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.001853155520519012,
+      "missed_picks": 13
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0006970784525490714,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "encoder_bias",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.002312235338197688,
+      "missed_picks": 7
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0007663236433668175,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0015827087477546797,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.0033738250369061973,
+      "missed_picks": 14
+    },
+    {
+      "truth": "encoder_bias",
+      "dashboard": "camera_moved",
+      "passive": "encoder_bias",
+      "kintrace": "encoder_bias",
+      "probe_used": false,
+      "size_err": 0.003283758987572938,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.012636247890760899,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.012214469505821057,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.006807251721951957,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.014645424216993774,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.022900291636545944,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.016343485623011134,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.018405841972025883,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.002195301212466916,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.016493395156985002,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.014483131340512045,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.01181734541410151,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.023703508860876354,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.024294944224564574,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.007896753410747692,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.012454337712824781,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.01760701282439925,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.0009145006077915241,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.012146043858152211,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.02114939627328738,
+      "missed_picks": 14
+    },
+    {
+      "truth": "latency",
+      "dashboard": "latency",
+      "passive": "latency",
+      "kintrace": "latency",
+      "probe_used": false,
+      "size_err": 0.010862288603533443,
+      "missed_picks": 14
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+KINTRACE  diagnosis of latency.npz
+============================================================
+Sensor agreement checks
+  [FAIL] Command timing             102 ms delay vs 8 ms normal
+  [ok  ] Controller settings        match last known-good
+  [ok  ] Camera vs joint encoders   disagreement 1.0x sensor noise
+  [FAIL] Pick success               0% vs 100% normal
+
+Verdict: COMMANDS ARRIVING LATE   (direct measurement)
+  size : +94 ms slower than normal (about 23 mm of conveyor travel)
+  fix  : Not a parameter fix. Check network load, controller CPU and the command path (driver, bridge, DDS settings) since the last good run.

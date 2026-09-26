@@ -1,0 +1,11 @@
+KINTRACE  diagnosis of camera_moved.npz
+============================================================
+Sensor agreement checks
+  [ok  ] Command timing             8 ms delay vs 8 ms normal
+  [ok  ] Controller settings        match last known-good
+  [FAIL] Camera vs joint encoders   disagreement 19.0x sensor noise
+  [FAIL] Pick success               0% vs 100% normal
+
+Verdict: CAMERA MOVED   confidence 100%
+  size : 23.7 mm, 0.24 deg (parts appear 20 mm off in the pick area)
+  fix  : Write the corrected camera extrinsic below to the controller, then re-tighten the camera mount.
