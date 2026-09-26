@@ -153,7 +153,7 @@ def chart_early_warning():
     ax.set_ylabel("Physical health score", fontsize=15, color=SOFT)
     ax.set_ylim(0, 120)
     ax.set_yticks([0, 50, 100])
-    ax.set_xlim(0, miss_t + 52)
+    ax.set_xlim(0, miss_t + 26)
     strip(ax)
     fig.tight_layout()
     fig.savefig(OUT / "early_warning.png", dpi=200)
@@ -183,8 +183,7 @@ def chart_why_now():
     ax.set_yticks([])
     ax.tick_params(axis="x", length=0, labelsize=17)
     strip(ax, left=False, bottom=True)
-    ax.set_xlabel("Venture money going into robotics, per year",
-                  fontsize=15, color=SOFT, labelpad=12)
+    ax.set_xlabel("")
     fig.tight_layout()
     fig.savefig(OUT / "why_now.png", dpi=200)
     plt.close(fig)

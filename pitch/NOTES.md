@@ -15,7 +15,10 @@ be embedded and nothing substitutes to something ugly when Carlos opens it. That
 ruled out the site's own fonts, Archivo and IBM Plex Mono, which are Google
 Fonts and would fall back unpredictably in PowerPoint.
 
-Numbers inside charts are Arial, so a chart and the sentence above it match.
+Numbers inside charts are Arial. Note that Georgia sets old-style figures, the
+kind with descenders, so a number in a headline and the same number in a chart
+do not look identical. We kept it: the headline reads as prose, which is what a
+sentence-shaped headline wants, and the chart reads as data.
 
 ## Palette
 

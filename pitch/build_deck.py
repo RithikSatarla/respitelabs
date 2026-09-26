@@ -215,7 +215,7 @@ def s02_moment(prs):
                   spacing=1.3)
         y += 2.42
 
-    tf = box(s, ML, 6.62, CW, 0.4)
+    tf = box(s, ML, SRC_TOP, CW, 0.4)
     write(tf, "An illustration. The 18 mm and the timings are printed by the tool, "
               "running on our simulator. No cell like this exists yet.",
           size=11.5, color=FAINT)
@@ -245,7 +245,8 @@ the 18 mm are real output from the tool, not numbers I made up for the slide.
 
 def s03_cost(prs):
     s = blank(prs)
-    headline(s, "You pay for it twice: in ruined training data, and in stopped lines.")
+    headline(s, ["You pay for it twice: in ruined training data,",
+                 "and in stopped lines."])
 
     picture(s, "cost_episodes.png", ML, BODY_TOP + 0.12, w=6.55)
     tf = box(s, ML, BODY_TOP + 2.28, 6.3, 1.4)
@@ -305,7 +306,8 @@ def slide_vline(slide, x, y, h):
 
 def s04_why_unsolved(prs):
     s = blank(prs)
-    headline(s, "Everything on the market tells you something is wrong, not what moved.")
+    headline(s, ["Everything on the market tells you something is wrong,",
+                 "not what moved."])
 
     cols = [
         ("Monitoring dashboards",
@@ -340,6 +342,9 @@ def s04_why_unsolved(prs):
               "changed, what moved, by how much, and the fix written back.",
           size=16, color=INK, spacing=1.3)
 
+    source(s, "What each of these does is taken from their own sites and materials. "
+              "Listed in pitch/SOURCES.md.")
+
     notes(s, """
 Why has nobody done this? They have each done a piece.
 
@@ -364,7 +369,8 @@ and the fix, from software, with no new hardware.
 
 def s05_product(prs):
     s = blank(prs)
-    headline(s, "Kintrace reads the robot's own logs, then says what moved and writes the fix.")
+    headline(s, ["Kintrace reads the robot's own logs, then says",
+                 "what moved and writes the fix."])
 
     pic = picture(s, "play_record.png", ML, BODY_TOP + 0.05, w=8.6)
 
@@ -385,7 +391,7 @@ def s05_product(prs):
         write(tf, body, size=13.5, color=SOFT, spacing=1.36)
         y += 1.62
 
-    tf = box(s, ML, 6.58, 8.6, 0.4)
+    tf = box(s, ML, SRC_TOP, 8.6, 0.4)
     write(tf, "A real run of the tool, on our simulated cell. Try it yourself at "
               "the link on the last slide.", size=11.5, color=FAINT)
 
@@ -416,8 +422,8 @@ to certify a cell, that matters more than accuracy.
 
 def s06_proof(prs):
     s = blank(prs)
-    headline(s, "In our simulator, Kintrace named the right cause every time. "
-                "The dashboard baseline we wrote got 69%.")
+    headline(s, ["In our simulator, Kintrace named the right cause",
+                 "every time. The dashboard baseline we wrote got 69%."])
 
     picture(s, "results_by_fault.png", 1.97, BODY_TOP + 0.08, h=4.70)
 
@@ -447,7 +453,8 @@ That is why the money in this round goes to running exactly this on a real arm.
 
 def s07_early(prs):
     s = blank(prs)
-    headline(s, "It also catches slow drift, about 55 seconds before the first grab misses.")
+    headline(s, ["It also catches slow drift, about 55 seconds",
+                 "before the first grab misses."])
 
     picture(s, "early_warning.png", 1.80, BODY_TOP + 0.05, h=4.70)
 
@@ -479,7 +486,8 @@ is slower, which means more warning, not less.
 
 def s08_why_now(prs):
     s = blank(prs)
-    headline(s, "There have never been more robots, and the money behind them doubled in three years.")
+    headline(s, ["There have never been more robots, and the money",
+                 "behind them doubled in three years."])
 
     picture(s, "why_now.png", ML, BODY_TOP + 0.1, w=7.9)
 
@@ -530,7 +538,8 @@ second buyer who is faster to move and in more of a hurry.
 
 def s09_market(prs):
     s = blank(prs)
-    headline(s, "At $200 a robot a month, the part we can realistically sell to is $1.2B a year.")
+    headline(s, ["At $200 a robot a month, the part we can",
+                 "realistically sell to is $1.2B a year."])
 
     picture(s, "market.png", 1.92, BODY_TOP + 0.02, h=3.92)   # 2.42 aspect -> 9.49in wide, centred
 
@@ -584,7 +593,8 @@ def merge_runs_inline(tf):
 
 def s10_business(prs):
     s = blank(prs)
-    headline(s, "$200 a robot a month, against a technician visit that costs $1,500 to $3,000.")
+    headline(s, ["$200 a robot a month, against a technician visit",
+                 "that costs $1,500 to $3,000."])
 
     # Left: pricing and go to market.
     tf = box(s, ML, BODY_TOP, 4.55, 0.4)
@@ -594,17 +604,17 @@ def s10_business(prs):
         ("~$300", "per incident we find and fix. Planned pilot pricing, no pilots yet"),
         ("$1,500 to $3,000", "what the technician visit it replaces costs today (our estimate)"),
     ]
-    y = BODY_TOP + 0.48
+    y = BODY_TOP + 0.44
     for value, body in items:
         tf = box(s, ML, y, 4.5, 0.38)
         write(tf, value, font=HEAD_FONT, size=21, color=ACCENT if value != "$1,500 to $3,000" else SOFT)
         tf = box(s, ML, y + 0.38, 4.05, 0.6)
         write(tf, body, size=13, color=SOFT, spacing=1.3)
-        y += 1.08
+        y += 0.98
 
     tf = box(s, ML, y + 0.12, 4.55, 0.4)
     write(tf, "Who we sell to, in order", size=13, color=FAINT, bold=True)
-    tf = box(s, ML, y + 0.56, 4.05, 1.3)
+    tf = box(s, ML, y + 0.54, 4.05, 0.95)
     write(tf, "Robot learning teams first, they feel bad data fastest. "
               "Then robots-as-a-service fleets, who pay for every callout. "
               "Then robot makers.", size=13.5, color=SOFT, spacing=1.38)
@@ -642,6 +652,9 @@ def s10_business(prs):
     tf = box(s, gx + gw + 0.06, gy + gh / 2 - 0.18, 1.2, 0.3)
     write(tf, "Software only", size=11.5, color=FAINT, bold=True)
 
+    source(s, "The $1,500 to $3,000 technician visit is our own estimate from conversations, "
+              "not a published figure. Our pricing is intended, not yet tested on a buyer.")
+
     notes(s, """
 Pricing. Two hundred a robot a month for the always-on watching. In pilots I
 will also do it per incident, about three hundred dollars for a fix, because
@@ -669,7 +682,8 @@ That is the whole bet.
 
 def s11_ask(prs):
     s = blank(prs)
-    headline(s, "Raising [$150K] to put Kintrace on real arms and into three paid pilots.")
+    headline(s, ["Raising [$150K] to put Kintrace on real arms",
+                 "and into three paid pilots."])
 
     tf = box(s, ML, BODY_TOP, 5.1, 0.4)
     write(tf, "Where it goes", size=13, color=FAINT, bold=True)
