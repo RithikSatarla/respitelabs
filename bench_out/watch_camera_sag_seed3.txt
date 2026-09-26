@@ -1,0 +1,25 @@
+Simulated drift, sped up: error at the pick area grows 5.2 mm/min (0.24 deg/min) from t+25s. Real drift is far slower.
+
+KINTRACE WATCH  simulated camera_sag (seed 3)
+================================================================
+window 10 s, tolerance 8 mm sideways / 15 mm up-down, warn at 15% used
+
+  time      health  camera  arm    cause-so-far
+  06:00:10   98.4   0.14mm  0.05mm  -
+  06:00:40   87.7   0.90mm  0.19mm  camera
+  06:01:00   71.0   2.60mm  0.03mm  camera  <- warning
+  06:01:10   60.2   3.48mm  0.14mm  camera
+  06:01:40   32.8   6.06mm  0.03mm  camera
+  06:02:10    4.4   8.64mm  0.03mm  camera
+  06:02:40    0.0  11.25mm  0.11mm  camera
+  06:03:10    0.0  13.88mm  0.03mm  camera
+  06:03:40    0.0  16.45mm  0.07mm  camera
+  06:03:50    0.0  17.28mm  0.16mm  camera
+
+WARNING at 06:01:00  health 71/100
+  Camera is moving (sagging mount). Parts now appear 2.6 mm off, growing 5.08 mm/min.
+  Picks likely start missing in about 0.8 min (at 70% of tolerance), at the current rate.
+  Next: Run the check and fix at the next stop (writes a new camera calibration), and tighten the camera mount.
+
+(simulation: first missed pick at 06:01:55)
+json : bench_out/watch_camera_sag_seed3.json

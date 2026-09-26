@@ -69,7 +69,7 @@ camera mount, a creeping joint) before picks start missing.
 | error at the first miss (median) | 5.9 mm | 7.2 mm |
 
 0 false alarms in 230 healthy windows. The drift is sped up so a run takes
-minutes. Real drift is slower, so the warning comes earlier.
+minutes. We have not measured lead time at real-world drift rates.
 
 ## Cell ledger: `kintrace ledger`
 

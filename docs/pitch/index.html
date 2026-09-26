@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kintrace deck</title>
+<meta name="description" content="Kintrace: physical observability for robot arms. Seed deck.">
+<style>
+  :root{
+    --ink:#0C0C0E; --soft:#505157; --faint:#76777D; --rule:#E3E3E6;
+    --panel:#F6F6F7; --accent:#E8662F; --paper:#fff;
+    --head:Georgia,"Times New Roman",serif;
+    --body:Arial,Helvetica,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#1a1a1c;color:var(--ink);font-family:var(--body)}
+
+  .stage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .slide{
+    position:relative;width:min(100%,1180px);aspect-ratio:16/9;background:var(--paper);
+    padding:4.2% 6.4%;display:none;flex-direction:column;overflow:hidden;
+    box-shadow:0 18px 60px rgba(0,0,0,.45);
+  }
+  .slide.on{display:flex}
+  h1.head{
+    font-family:var(--head);font-weight:400;color:var(--ink);
+    font-size:clamp(17px,2.44vw,33px);line-height:1.16;margin:0 0 4px;max-width:96%;
+  }
+  .src{position:absolute;left:6.4%;right:6.4%;bottom:3.4%;font-size:clamp(7px,.78vw,11px);color:var(--faint);line-height:1.35}
+  .body{flex:1;display:flex;min-height:0;padding-top:2.2%;padding-bottom:4.6%;align-items:center}
+  .body.stretch{align-items:stretch}
+  p{margin:0}
+  .muted{color:var(--soft)}
+  .faint{color:var(--faint)}
+  .accent{color:var(--accent)}
+  .kicker{font-size:clamp(8px,.92vw,13px);color:var(--faint);font-weight:700;letter-spacing:.01em;margin-bottom:10px}
+  .rule{height:1px;background:var(--rule);width:100%}
+  .panel{background:var(--panel)}
+  img.chart{display:block;max-width:100%;max-height:100%;object-fit:contain}
+
+  /* cover */
+  .cover{justify-content:center}
+  .cover .bar{width:128px;height:5px;background:var(--accent);margin-bottom:26px}
+  .cover .word{font-family:var(--head);font-size:clamp(44px,6.6vw,88px);line-height:1;margin:0}
+  .cover .sub{font-family:var(--head);font-size:clamp(13px,1.85vw,25px);line-height:1.35;color:var(--soft);max-width:74%;margin-top:22px}
+  .cover .foot{position:absolute;left:6.4%;right:6.4%;bottom:6%;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+  .cover .foot .who{font-size:clamp(9px,1.06vw,15px);line-height:1.5}
+  .cover .foot .was{font-size:clamp(8px,.86vw,12px);color:var(--faint);text-align:right;line-height:1.5}
+  .cover .hr{position:absolute;left:6.4%;right:6.4%;bottom:13.4%;height:1px;background:var(--rule)}
+
+  /* timeline */
+  .tl{display:flex;flex-direction:column;justify-content:space-evenly;gap:4%;width:100%;height:100%}
+  .tl .lane-title{font-size:clamp(9px,1.16vw,17px);font-weight:700;margin-bottom:16px}
+  .tl .track{position:relative}
+  .tl .track:before{content:"";position:absolute;top:6px;left:0;right:2%;height:1px;background:var(--rule)}
+  .tl .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:2.2%}
+  .tl .step .pip{width:13px;height:13px;border-radius:50%;background:var(--rule);position:absolute;top:0;left:0}
+  .tl .step{position:relative;padding-right:8%;padding-top:30px}
+  .tl .when{font-size:clamp(8.6px,1.06vw,15px);font-weight:700;margin-bottom:6px}
+  .tl .what{font-size:clamp(8px,.99vw,14.5px);color:var(--soft);line-height:1.38}
+  .tl .kin .pip{background:var(--accent)}
+
+  /* three columns */
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:6%;width:100%}
+  .cols .cap{height:3px;background:var(--rule);width:74px;margin-bottom:16px}
+  .cols .c3 .cap{background:var(--accent)}
+  .cols h3{font-family:var(--head);font-weight:700;font-size:clamp(11px,1.4vw,19px);margin:0 0 7px}
+  .cols .who{font-size:clamp(7.6px,.88vw,12.5px);color:var(--faint);margin-bottom:12px}
+  .cols p{font-size:clamp(8.4px,1.06vw,15px);color:var(--soft);line-height:1.44}
+
+  .strip{position:absolute;left:6.4%;right:6.4%;bottom:11%;background:var(--panel);padding:2% 2.6%;
+         font-size:clamp(8.6px,1.12vw,16px);line-height:1.3}
+
+  /* split */
+  .split{display:grid;grid-template-columns:1.3fr 1fr;gap:7%;width:100%;align-items:center}
+  .split .vr{position:absolute;top:26%;bottom:16%;left:59%;width:1px;background:var(--rule)}
+  .big{font-family:var(--head);font-size:clamp(30px,4.9vw,68px);line-height:1;color:var(--accent)}
+
+  /* product */
+  .prod{display:grid;grid-template-columns:1.9fr 1fr;gap:4.4%;width:100%;align-items:start}
+  .steps3 .s{display:flex;gap:11px;margin-bottom:8.5%}
+  .steps3 .pip{width:11px;height:11px;border-radius:50%;background:var(--accent);flex:0 0 auto;margin-top:5px}
+  .steps3 h4{font-family:var(--head);font-size:clamp(10px,1.28vw,17px);margin:0 0 5px}
+  .steps3 p{font-size:clamp(7.6px,.94vw,13.5px);color:var(--soft);line-height:1.38}
+
+  /* why now */
+  .wn{display:grid;grid-template-columns:1.5fr 1fr;gap:5%;width:100%;align-items:center}
+  .wn .fact{margin-bottom:9%}
+  .wn .cap{height:3px;width:66px;background:var(--accent);margin-bottom:13px}
+  .wn .v{font-family:var(--head);font-size:clamp(17px,2.4vw,32px);line-height:1.05;margin-bottom:8px}
+  .wn p{font-size:clamp(7.8px,.96vw,14px);color:var(--soft);line-height:1.42}
+
+  /* 2x2 */
+  .biz{display:grid;grid-template-columns:.86fr 1.28fr;gap:6%;width:100%}
+  .price .v{font-family:var(--head);font-size:clamp(13px,1.65vw,22px);color:var(--accent);line-height:1.1}
+  .price .v.grey{color:var(--soft)}
+  .price .l{font-size:clamp(7.4px,.9vw,13px);color:var(--soft);margin:4px 0 14px;line-height:1.32}
+  .quad{position:relative;width:100%;background:#FAFAFB;aspect-ratio:1.5/1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .quad:before,.quad:after{content:"";position:absolute;background:var(--rule)}
+  .quad:before{left:0;right:0;top:50%;height:1px}
+  .quad:after{top:0;bottom:0;left:50%;width:1px}
+  .quad .q{padding:7% 8%}
+  .quad h5{font-size:clamp(7.6px,.92vw,13.5px);margin:0 0 5px}
+  .quad p{font-size:clamp(6.6px,.78vw,11px);color:var(--soft);line-height:1.3}
+  .axis{position:absolute;font-size:clamp(6.6px,.8vw,11.5px);color:var(--faint);font-weight:700}
+  .ax-t{top:-20px;left:0;right:0;text-align:center}
+  .ax-b{bottom:-20px;left:0;right:0;text-align:center}
+  .ax-l{left:-12px;top:50%;transform:translate(-100%,-50%);text-align:right;width:92px}
+  .ax-r{right:-12px;top:50%;transform:translate(100%,-50%);width:92px}
+
+  /* ask */
+  .ask{display:grid;grid-template-columns:1fr 1.12fr;gap:7%;width:100%}
+  .ask li{font-size:clamp(8px,1vw,14.5px);color:var(--soft);line-height:1.42;margin-bottom:11px}
+  .ask ul{margin:0;padding-left:17px}
+  .mile{display:flex;gap:11px;margin-bottom:5.4%}
+  .mile .pip{width:11px;height:11px;border-radius:50%;background:var(--rule);flex:0 0 auto;margin-top:5px}
+  .mile.hot .pip{background:var(--accent)}
+  .mile .w{font-size:clamp(8px,.96vw,13.5px);font-weight:700}
+  .mile .t{font-size:clamp(7.8px,.94vw,13.5px);color:var(--soft);line-height:1.34}
+  .links{position:absolute;left:6.4%;right:6.4%;bottom:5.6%;font-size:clamp(7.6px,.9vw,12.5px);color:var(--soft)}
+  .links a{color:var(--soft)}
+  .hrx{position:absolute;left:6.4%;right:6.4%;bottom:10.4%;height:1px;background:var(--rule)}
+
+  /* chrome */
+  .nav{position:fixed;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:14px;
+       align-items:center;color:#9a9a9e;font-size:12px;z-index:9}
+  .nav button{background:#2a2a2d;color:#e8e8ea;border:0;border-radius:6px;padding:6px 12px;
+              font:inherit;cursor:pointer}
+  .nav button:hover{background:#3a3a3e}
+  @media print{
+    html,body{background:#fff}
+    .nav{display:none}
+    .stage{display:block;padding:0;min-height:0}
+    .slide{display:flex!important;width:100%;box-shadow:none;page-break-after:always;break-after:page}
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- 1 -->
+  <section class="slide on cover">
+    <div class="bar"></div>
+    <p class="word">Kintrace</p>
+    <p class="sub">Robots get knocked out of place and nobody notices. Kintrace finds what moved and puts it back.</p>
+    <div class="hr"></div>
+    <div class="foot">
+      <div class="who"><b>Rithik Satarla</b><br>rithiksatarla@gmail.com</div>
+      <div class="was">Previously LoopCell.<br>Same product, new name.</div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <h1 class="head">At 1:40 a cart clips a camera. Nobody finds out until 2:10.</h1>
+    <div class="body stretch"><div class="tl">
+      <div>
+        <div class="lane-title muted">Today</div>
+        <div class="track"><div class="steps">
+          <div class="step"><span class="pip"></span><div class="when">1:40</div><div class="what">A cart clips the camera mount. Nothing alarms.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">1:40 on</div><div class="what">The robot keeps working. Every grab is now a centimetre off.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">2:10</div><div class="what">Grabs start missing. The line stops.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">Hours later</div><div class="what">A technician arrives and checks each possible cause by hand.</div></div>
+        </div></div>
+      </div>
+      <div class="kin">
+        <div class="lane-title accent">With Kintrace</div>
+        <div class="track"><div class="steps">
+          <div class="step"><span class="pip"></span><div class="when">1:40:23</div><div class="what">Flagged. The camera moved 18 mm.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">1:40:29</div><div class="what">A 6 second check motion confirms nothing else moved.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">1:41</div><div class="what">The new camera calibration is written to the controller.</div></div>
+          <div class="step"><span class="pip"></span><div class="when">1:43</div><div class="what">Six test grabs, all good. Signed off, back in production.</div></div>
+        </div></div>
+      </div>
+    </div></div>
+    <div class="src">An illustration. The 18 mm and the timings are printed by the tool, running on our simulator. No cell like this exists yet.</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <h1 class="head">You pay for it twice: in ruined training data, and in stopped lines.</h1>
+    <div class="body"><div class="split">
+      <div>
+        <img class="chart" src="charts/cost_episodes.png" alt="16 of 100 squares marked">
+        <div style="margin-top:16px">
+          <p style="font-size:clamp(8.6px,1.1vw,16px);font-weight:700">Robot training data</p>
+          <p class="muted" style="font-size:clamp(8px,1.02vw,15px);line-height:1.4;margin-top:5px">
+            An open audit of 4,959 recorded episodes flagged 15.6% of them for exclusion, and another half for review.</p>
+        </div>
+      </div>
+      <div>
+        <div class="big">$2.3M</div>
+        <p style="font-size:clamp(8.6px,1.16vw,17px);font-weight:700;margin-top:8px">an hour</p>
+        <p class="muted" style="font-size:clamp(8px,1.02vw,15px);line-height:1.42;margin-top:8px">
+          Up to, for an idle production line at a big car plant. Across the 500 largest manufacturers, unplanned downtime of every kind costs $1.4 trillion a year, about 11% of revenue.</p>
+      </div>
+    </div></div>
+    <div class="src">Episode audit: an open source tool run over 12 public datasets, dev.to, 2026. Downtime: Siemens, The True Cost of Downtime 2024. Both linked in pitch/SOURCES.md.</div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <h1 class="head">Everything on the market tells you something is wrong, not what moved.</h1>
+    <div class="body"><div class="cols">
+      <div class="c1"><div class="cap"></div><h3>Monitoring dashboards</h3><div class="who">Ember, Foxglove, Formant</div>
+        <p>They watch the software and the logs. They will tell you a cell is slow or a run failed. They do not measure where the camera is, so they cannot name the physical cause.</p></div>
+      <div class="c2"><div class="cap"></div><h3>Calibration hardware</h3><div class="who">Dynalog, CAPTRON, Renishaw</div>
+        <p>These do measure, and they are accurate. But you bolt a device into every cell you want covered, and each one mostly does the tool.</p></div>
+      <div class="c3"><div class="cap"></div><h3>A technician</h3><div class="who">How it is actually done</div>
+        <p>Someone drives out and rules out each cause by hand, one at a time, with the cell down while they do it. It works. It costs hours.</p></div>
+    </div></div>
+    <div class="strip">We have not found anyone doing all of it from software alone: when it changed, what moved, by how much, and the fix written back.</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <h1 class="head">Kintrace reads the robot's own logs, then says what moved and writes the fix.</h1>
+    <div class="body"><div class="prod">
+      <img class="chart" src="charts/play_record.png" alt="Kintrace incident record: camera moved 18.1 mm, status GO">
+      <div class="steps3">
+        <div class="s"><span class="pip"></span><div><h4>Notices</h4><p>It finds the moment things changed and lines it up with the protective stop.</p></div></div>
+        <div class="s"><span class="pip"></span><div><h4>Explains</h4><p>It names the cause and sizes it. Here: the camera, 18.1 mm.</p></div></div>
+        <div class="s"><span class="pip"></span><div><h4>Fixes</h4><p>It writes the new calibration, re-checks, runs six test grabs, then signs GO or NO-GO.</p></div></div>
+      </div>
+    </div></div>
+    <div class="src">A real run of the tool, on our simulated cell. Try it yourself at the link on the last slide.</div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <h1 class="head">In our simulator, Kintrace named the right cause every time. The dashboard baseline we wrote got 69%.</h1>
+    <div class="body" style="justify-content:center"><img class="chart" src="charts/results_by_fault.png" alt="Per fault accuracy, Kintrace versus a standard dashboard"></div>
+    <div class="src">120 runs on our simulated UR5e pick cell, 20 per case, every fault sized to cause the same 20 mm miss. The baseline is ours, built from the signals a typical dashboard tracks. Never run on a real arm.</div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <h1 class="head">It also catches slow drift, about 55 seconds before the first grab misses.</h1>
+    <div class="body" style="justify-content:center"><img class="chart" src="charts/early_warning.png" alt="Health score falling, warning 55 seconds before the first missed pick"></div>
+    <div class="src">One simulated run of a sagging camera mount. Across 20 drifts it warned before the first miss 19 times, named the cause right 20 times, and raised 0 false alarms in 230 healthy windows. Drift is sped up so a run takes minutes. We have not measured lead time at real-world drift rates.</div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <h1 class="head">There have never been more robots, and the money behind them doubled in three years.</h1>
+    <div class="body"><div class="wn">
+      <img class="chart" src="charts/why_now.png" alt="Robotics venture funding 2022 to 2025">
+      <div>
+        <div class="fact"><div class="cap"></div><div class="v">5 million</div>
+          <p>industrial robots now operating, a record, up 9% in a year. The US installed 38,500 and passed Japan. IFR, September 2026.</p></div>
+        <div class="fact"><div class="cap"></div><div class="v">47% a year</div>
+          <p>forecast growth for physical AI, from $0.89B in 2025 to $15.2B by 2032. Every robot in it learns from recordings.</p></div>
+      </div>
+    </div></div>
+    <div class="src">IFR World Robotics 2026. MarketsandMarkets, physical AI. Venture figures from Robotics Center, State of Robotics 2026. Links in pitch/SOURCES.md.</div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <h1 class="head">At $200 a robot a month, the part we can realistically sell to is $1.2B a year.</h1>
+    <div class="body" style="justify-content:center;padding-bottom:15%"><img class="chart" src="charts/market.png" alt="TAM 12B, SAM 1.2B, SOM 48M as nested circles"></div>
+    <div class="strip" style="bottom:12.5%"><b>Top down check:</b> <span class="muted">$22.5B was spent on industrial robot services in 2023, heading to $41.6B by 2033. Our $12B bottom up number sits inside a services market that is already twice its size.</span></div>
+    <div class="src">Robot count: IFR World Robotics 2026. Services market: Market.us, October 2024. The 10% camera share is our own estimate; we looked for a public figure and did not find one.</div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <h1 class="head">$200 a robot a month, against a technician visit that costs $1,500 to $3,000.</h1>
+    <div class="body"><div class="biz">
+      <div class="price">
+        <div class="kicker">How we charge</div>
+        <div class="v">$200</div><div class="l">per robot, per month, for always-on watching</div>
+        <div class="v">~$300</div><div class="l">per incident we find and fix. Planned pilot pricing, no pilots yet</div>
+        <div class="v grey">$1,500 to $3,000</div><div class="l">what the technician visit it replaces costs today (our estimate)</div>
+        <div class="kicker" style="margin-top:6px">Who we sell to, in order</div>
+        <div class="l">Robot learning teams first, they feel bad data fastest. Then robots-as-a-service fleets, who pay for every callout. Then robot makers.</div>
+      </div>
+      <div style="padding:6px 26px 6px 34px;display:flex;align-items:center">
+        <div class="quad">
+          <div class="axis ax-t">Finds and fixes the cause</div>
+          <div class="axis ax-b">Only shows a problem</div>
+          <div class="axis ax-l">Needs hardware</div>
+          <div class="axis ax-r">Software only</div>
+          <div class="q"><h5>Dynalog, CAPTRON</h5><p>Finds and fixes it, but you mount hardware in every cell.</p></div>
+          <div class="q"><h5 class="accent">Kintrace</h5><p>Finds it, sizes it, writes the fix, certifies the cell. Software only.</p></div>
+          <div class="q"><h5>Robot makers</h5><p>Built-in mastering routines. One brand, run by a technician.</p></div>
+          <div class="q"><h5>Ember, Foxglove, dataset checkers</h5><p>Show you something is off. No geometry, no fix.</p></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <h1 class="head">Raising [$150K] to put Kintrace on real arms and into three paid pilots.</h1>
+    <div class="body"><div class="ask">
+      <div>
+        <div class="kicker">Where it goes</div>
+        <ul>
+          <li>A desk arm rig, then time on a lab arm, to reproduce all five faults on real hardware.</li>
+          <li>Three paid pilots with robot learning teams.</li>
+          <li>A reader so fleets can send their own robot logs, in the formats they already record.</li>
+        </ul>
+        <div class="kicker" style="margin-top:22px">Team</div>
+        <p style="font-size:clamp(8.4px,1.04vw,15px)"><b>Rithik Satarla</b></p>
+        <p class="muted" style="font-size:clamp(7.8px,.94vw,13.5px);line-height:1.4;margin-top:4px">
+          Physical AI research intern at CMU. Harvard Innovation Labs. Wrote all of the above.</p>
+        <p class="faint" style="font-size:clamp(7.8px,.94vw,13.5px);margin-top:6px">[Cofounder]</p>
+      </div>
+      <div>
+        <div class="kicker">Next six months</div>
+        <div class="mile hot"><span class="pip"></span><div><div class="w">Nov 2</div><div class="t">YC W27 application in</div></div></div>
+        <div class="mile"><span class="pip"></span><div><div class="w">Month 1-2</div><div class="t">Five faults reproduced on the desk arm, numbers published</div></div></div>
+        <div class="mile"><span class="pip"></span><div><div class="w">Month 3-4</div><div class="t">Same five on a lab arm, and the first paid pilot</div></div></div>
+        <div class="mile"><span class="pip"></span><div><div class="w">Month 5-6</div><div class="t">Three paid pilots running, real log reader shipped</div></div></div>
+      </div>
+    </div></div>
+    <div class="hrx"></div>
+    <div class="links">rithiksatarla@gmail.com &nbsp;·&nbsp; Try it: <a href="../play/">the Crash It Yourself demo</a> &nbsp;·&nbsp; Code: <a href="https://github.com/RithikSatarla/kintrace">github.com/RithikSatarla/kintrace</a></div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Previous slide">&larr;</button>
+  <span id="count">1 / 11</span>
+  <button id="next" aria-label="Next slide">&rarr;</button>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var count = document.getElementById('count');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === i); });
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(i + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')  { e.preventDefault(); show(i - 1); }
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  document.getElementById('next').addEventListener('click', function(){ show(i + 1); });
+  document.getElementById('prev').addEventListener('click', function(){ show(i - 1); });
+  var start = parseInt((location.hash || '#1').slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
