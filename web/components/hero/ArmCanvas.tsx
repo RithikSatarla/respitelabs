@@ -54,7 +54,7 @@ export default function ArmCanvas({ state, className }: Props) {
     }
     minZ = Math.min(minZ, 0);
     const padL = w * 0.30;   // room on the left for the camera post
-    const padR = w * 0.08;
+    const padR = w * 0.24;   // keep the arm clear of the live label column
     const padT = h * 0.13;
     const padB = h * 0.16;
     const scale = Math.min(
