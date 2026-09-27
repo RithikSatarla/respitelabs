@@ -23,12 +23,15 @@ OUT = ROOT / "pitch" / "charts"
 OUT.mkdir(parents=True, exist_ok=True)
 
 # Palette, from docs/index.html. See pitch/NOTES.md.
-INK = "#0C0C0E"
-SOFT = "#505157"
-RULE = "#E3E3E6"
-PANEL = "#F6F6F7"
-ACCENT = "#E8662F"     # Kintrace, and only Kintrace
-GREY = "#B9BAC0"       # everything that is not us
+# Yellow is a fill colour only. It is never used for text or for a thin line,
+# because #FFC400 on #F7F7F4 has nowhere near enough contrast to read.
+INK = "#121212"
+SOFT = "#55565B"
+RULE = "#DEDED8"
+PANEL = "#EFEFEA"
+PAPER = "#F7F7F4"
+ACCENT = "#FFC400"     # Kintrace, and only Kintrace
+GREY = "#C9C9C2"       # everything that is not us
 GO = "#0B7A2A"
 
 plt.rcParams.update({
@@ -40,9 +43,9 @@ plt.rcParams.update({
     "ytick.color": SOFT,
     "xtick.labelsize": 15,
     "ytick.labelsize": 15,
-    "figure.facecolor": "white",
-    "axes.facecolor": "white",
-    "savefig.facecolor": "white",
+    "figure.facecolor": PAPER,
+    "axes.facecolor": PAPER,
+    "savefig.facecolor": PAPER,
 })
 
 PLAIN = {
@@ -80,7 +83,8 @@ def chart_results():
     ys = list(range(len(ORDER)))
 
     for i, (dv, kv) in enumerate(zip(dash, kin)):
-        ax.barh(i - h / 2, kv, height=h, color=ACCENT, zorder=3)
+        ax.barh(i - h / 2, kv, height=h, color=ACCENT, zorder=3,
+                edgecolor=INK, linewidth=0.7)
         ax.barh(i + h / 2, dv, height=h, color=GREY, zorder=3)
         ax.text(kv + 1.6, i - h / 2, f"{kv:.0f}%", va="center", ha="left",
                 fontsize=15, color=INK, fontweight="bold")
@@ -93,6 +97,7 @@ def chart_results():
         (0.175, GREY, "Our dashboard baseline", "normal"),
     ):
         ax.add_patch(plt.Rectangle((x, 1.045), 0.016, 0.035, facecolor=colour,
+                                   edgecolor=INK, linewidth=0.7,
                                    transform=ax.transAxes, clip_on=False, zorder=5))
         ax.text(x + 0.026, 1.062, label, transform=ax.transAxes, fontsize=16,
                 color=INK if weight == "bold" else SOFT, fontweight=weight,
@@ -131,11 +136,11 @@ def chart_early_warning():
         raise SystemExit("could not read the first missed pick time from the run log")
 
     fig, ax = plt.subplots(figsize=(11.6, 5.6))
-    ax.plot(t, health, color=ACCENT, linewidth=3.2, zorder=4, solid_capstyle="round")
-    ax.fill_between(t, health, color=ACCENT, alpha=0.07, zorder=1)
+    ax.fill_between(t, health, color=ACCENT, alpha=0.55, zorder=1)
+    ax.plot(t, health, color=INK, linewidth=3.0, zorder=4, solid_capstyle="round")
 
-    ax.axvline(warn_t, color=INK, linewidth=1.4, zorder=2)
-    ax.axvline(miss_t, color=GREY, linewidth=1.4, zorder=2)
+    ax.axvline(warn_t, color=INK, linewidth=1.6, zorder=5)
+    ax.axvline(miss_t, color=SOFT, linewidth=1.2, linestyle=(0,(4,3)), zorder=5)
 
     ax.annotate("Kintrace warns here\nhealth 71, nothing has missed yet",
                 xy=(warn_t, warn_health), xytext=(warn_t - 55, 30),
@@ -170,14 +175,15 @@ def chart_why_now():
 
     fig, ax = plt.subplots(figsize=(11.6, 5.6))
     colors = [GREY, GREY, GREY, ACCENT]
-    bars = ax.bar(years, vc, width=0.52, color=colors, zorder=3)
+    bars = ax.bar(years, vc, width=0.52, color=colors, zorder=3,
+                  edgecolor=INK, linewidth=0.7)
     for b, v in zip(bars, vc):
         ax.text(b.get_x() + b.get_width() / 2, v + 0.25, f"${v}B",
                 ha="center", fontsize=17, color=INK,
                 fontweight="bold" if v == vc[-1] else "normal")
 
-    ax.text(3, 6.4, "+41%\nin one year", ha="center", va="center",
-            fontsize=15.5, color=ACCENT, fontweight="bold", linespacing=1.4)
+    ax.text(2.55, 8.3, "+41%\nin one year", ha="center", va="center",
+            fontsize=15.5, color=INK, fontweight="bold", linespacing=1.4)
 
     ax.set_ylim(0, 11.4)
     ax.set_yticks([])
@@ -207,14 +213,14 @@ def chart_market():
         ("SOM", f"${som/1e6:.0f}M a year", "20,000 robots, five years out\n20,000 x $2,400 a year"),
     ]
     vals = [tam, sam, som]
-    fills = ["#FBE4DA", "#F2A882", ACCENT]
+    fills = ["#FFF3C9", "#FFE07A", ACCENT]
 
     fig, ax = plt.subplots(figsize=(11.6, 4.8))
     R = 1.0
     radii = [R * (v / vals[0]) ** 0.5 for v in vals]
     for r, c in zip(radii, fills):
-        ax.add_patch(Circle((0, r), r, facecolor=c, edgecolor="white",
-                            linewidth=2.2, zorder=2))
+        ax.add_patch(Circle((0, r), r, facecolor=c, edgecolor=INK,
+                            linewidth=1.0, zorder=2))
 
     for i, ((tag, money, note), r) in enumerate(zip(rows, radii)):
         ty = 1.80 - i * 0.60
@@ -236,6 +242,45 @@ def chart_market():
     print(f"market.png             TAM ${tam/1e9:.0f}B  SAM ${sam/1e9:.1f}B  SOM ${som/1e6:.0f}M")
 
 
+def chart_budget():
+    """Where the $150K goes. Plain horizontal bars, biggest first."""
+    rows = [
+        ("Part-time robotics engineer, or a cofounder", 80),
+        ("A real industrial arm, used UR3 or UR5e", 20),
+        ("Buffer", 30),
+        ("Pilots: travel, cameras, markers on customer robots", 10),
+        ("Company setup, legal, accounting", 5),
+        ("Cloud and software", 3),
+        ("Desk robots and parts, 2 to 3 test rigs", 2),
+    ]
+    rows.sort(key=lambda r: -r[1])
+    total = sum(v for _, v in rows)
+    assert total == 150, f"budget adds to {total}, not 150"
+
+    labels = [r[0] for r in rows]
+    vals = [r[1] for r in rows]
+
+    fig, ax = plt.subplots(figsize=(11.6, 5.0))
+    ys = range(len(rows))
+    ax.barh(list(ys), vals, height=0.56, color=ACCENT, edgecolor=INK,
+            linewidth=0.7, zorder=3)
+    for i, v in enumerate(vals):
+        ax.text(v + 1.6, i, f"${v}K", va="center", ha="left",
+                fontsize=16, color=INK, fontweight="bold")
+
+    ax.set_yticks(list(ys))
+    ax.set_yticklabels(labels, fontsize=14.5, color=INK)
+    ax.invert_yaxis()
+    ax.set_xlim(0, 96)
+    ax.set_xticks([])
+    ax.tick_params(axis="y", length=0)
+    strip(ax, left=False, bottom=False)
+    fig.tight_layout()
+    fig.savefig(OUT / "budget.png", dpi=200)
+    plt.close(fig)
+    print(f"budget.png             {len(rows)} lines, ${total}K total")
+
+
 def chart_cost():
     """100 squares. The share of audited training episodes marked unusable."""
     # dev.to audit of 4,959 episodes from 12 datasets: 775 EXCLUDE = 15.6%.
@@ -250,12 +295,13 @@ def chart_cost():
         ax.add_patch(plt.Rectangle((c * (size + gap), -r * (size + gap)),
                                    size, size,
                                    facecolor=ACCENT if i < marked else RULE,
-                                   edgecolor="none"))
+                                   edgecolor=INK if i < marked else "none",
+                                   linewidth=0.6))
     ax.set_xlim(-0.4, cols * (size + gap))
     ax.set_ylim(-5 * (size + gap) + 0.3, 1.5)
     ax.set_aspect("equal")
     ax.axis("off")
-    ax.text(0, 1.05, f"{marked} in 100", fontsize=22, color=ACCENT,
+    ax.text(0, 1.05, f"{marked} in 100", fontsize=22, color=INK,
             fontweight="bold", va="bottom", ha="left")
     fig.tight_layout()
     fig.savefig(OUT / "cost_episodes.png", dpi=200)
@@ -269,3 +315,4 @@ if __name__ == "__main__":
     chart_why_now()
     chart_market()
     chart_cost()
+    chart_budget()

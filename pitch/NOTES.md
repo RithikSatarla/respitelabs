@@ -2,43 +2,46 @@
 
 ## Type pairing
 
-**Georgia for headlines. Arial for everything else.**
+**Arial in the pptx. Archivo on the web version.**
 
-A serif headline over a neutral sans body is a real editorial pairing, and it is
-the fastest way to not look like a template. Decks built by a tool default to
-sans on sans, usually Inter, so a serif headline reads as a decision someone
-made. Georgia was drawn for screens, so it holds up at 40pt on a laptop and on a
-projector.
+The website's display face is Archivo, a grotesque, with IBM Plex Mono for
+numbers. The web deck at `docs/pitch/` loads both from Google Fonts, so it
+matches the site exactly.
 
-Both fonts ship with Windows, macOS, PowerPoint and Google Slides. Nothing has to
-be embedded and nothing substitutes to something ugly when Carlos opens it. That
-ruled out the site's own fonts, Archivo and IBM Plex Mono, which are Google
-Fonts and would fall back unpredictably in PowerPoint.
+The pptx cannot. Archivo is a Google Font, and embedding fonts in a pptx
+substitutes unpredictably between PowerPoint and Google Slides, which is
+exactly where Carlos will open it. So the pptx uses Arial, which is the
+fallback the site's own CSS declares for Archivo. Same category of face, no
+substitution risk, opens identically everywhere.
 
-Numbers inside charts are Arial. Note that Georgia sets old-style figures, the
-kind with descenders, so a number in a headline and the same number in a chart
-do not look identical. We kept it: the headline reads as prose, which is what a
-sentence-shaped headline wants, and the chart reads as data.
+Numbers in the charts are Arial to match the pptx.
 
 ## Palette
 
-Taken from the product's own site (`docs/index.html`), so the deck and the thing
-it is selling look related.
+The website's colours, so the deck and the product look related.
 
 | Use | Hex |
 |---|---|
-| Ink, all headlines and body | `#0C0C0E` |
-| Secondary text, chart axes | `#505157` |
-| Hairlines and rules | `#E3E3E6` |
-| Panel fill | `#F6F6F7` |
-| Accent, Kintrace only | `#E8662F` |
+| Paper, every slide background | `#F7F7F4` |
+| Ink, all headlines and body | `#121212` |
+| Secondary text, chart axes | `#55565B` |
+| Hairlines and rules | `#DEDED8` |
+| Panel fill | `#EFEFEA` |
+| Safety yellow, Kintrace only | `#FFC400` |
 | GO green, the certify stamp only | `#0B7A2A` |
 
-One accent. It marks Kintrace and nothing else. Anything that is not us, a
-dashboard, a competitor, the old way, is grey. That means the eye finds us on
-every chart without a legend doing the work.
+**Yellow is a fill, never text and never a thin line.** `#FFC400` on `#F7F7F4`
+has nowhere near the contrast to read as type. So it shows up as a block behind
+black text, a bar, a rule or a filled shape. Where the old palette used orange
+as a text colour, that text is now black and the yellow moved behind it as a
+highlight. On the results chart the Kintrace bars are yellow with a hairline
+black edge, because a yellow shape on off-white needs an edge to hold its form.
+On the health chart the line is black and the yellow is the fill underneath it.
 
-No gradients. No second accent. White background everywhere.
+Anything that is not us is grey. That means the eye finds Kintrace on every
+chart without a legend doing the work.
+
+No gradients. No second accent.
 
 ## What we borrowed from decks that worked
 

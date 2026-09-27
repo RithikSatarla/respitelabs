@@ -9,8 +9,8 @@
 <style>
 :root{
   color-scheme: light;
-  --paper:#FFFFFF; --ink:#0C0C0E; --soft:#55565C; --faint:#8C8D93; --rule:#E3E3E6; --panel:#F6F6F7;
-  --signal:#E8662F; --signal-ink:#B8481A; --go:#0B7A2A; --nogo:#C62828;
+  --paper:#F7F7F4; --ink:#121212; --soft:#55565B; --faint:#7A7B7F; --rule:#DEDED8; --panel:#EFEFEA;
+  --signal:#FFC400; --signal-ink:#121212; --go:#0B7A2A; --nogo:#C62828;
   --display:"Archivo", "Arial Narrow", Arial, sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -21,10 +21,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--display
 @media (max-width:520px){.wrap{padding-inline:16px}}
 .top{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between;border-bottom:1.5px solid var(--ink);padding-bottom:14px}
 .logo{font-weight:900;font-stretch:125%;letter-spacing:.04em;text-decoration:none;color:var(--ink)}
-.logo span{color:var(--signal)}
+.logo span{color:var(--ink)}
 .top small{font-family:var(--mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
 h1{font-weight:900;font-stretch:122%;text-transform:uppercase;font-size:clamp(38px,6.4vw,80px);line-height:.95;letter-spacing:-.01em;margin:36px 0 12px;text-wrap:balance}
-h1 em{font-style:normal;color:var(--signal)}
+h1 em{font-style:normal;color:var(--ink);background:var(--signal);padding:0 .14em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .lede{color:var(--soft);font-size:18px;max-width:62ch;margin:0}
 .grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;margin-top:32px;align-items:start}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
@@ -102,14 +102,14 @@ pre{margin:0;padding:16px;font-family:var(--mono);font-size:13px;line-height:1.5
         <rect x="340" y="276" width="10" height="54" fill="#0C0C0E"/><rect x="560" y="276" width="10" height="54" fill="#0C0C0E"/>
         <rect x="360" y="246" width="200" height="16" fill="#FFFFFF" stroke="#0C0C0E" stroke-width="1.5"/>
         <g font-family="IBM Plex Mono, monospace" font-size="11" fill="#8C8D93"><text x="376" y="296">conveyor · 0.25 m/s</text></g>
-        <rect id="part" x="440" y="232" width="22" height="14" fill="#E8662F"/>
+        <rect id="part" x="440" y="232" width="22" height="14" fill="#FFC400"/>
         <!-- fixed table markers -->
         <rect x="336" y="254" width="12" height="8" fill="#0C0C0E"/><rect x="566" y="254" width="12" height="8" fill="#0C0C0E"/>
         <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#8C8D93"><text x="376" y="316">table tags at both ends</text></g>
         <!-- camera -->
         <rect x="96" y="70" width="6" height="260" fill="#0C0C0E"/>
         <g class="m-cam" id="cam" style="transform-origin:110px 64px">
-          <path d="M112 64 L 470 240 L 390 250 Z" fill="#E8662F" opacity=".08"/>
+          <path d="M112 64 L 470 240 L 390 250 Z" fill="#FFC400" opacity=".18"/>
           <rect x="88" y="50" width="44" height="28" rx="3" fill="#0C0C0E"/>
           <circle cx="126" cy="64" r="8" fill="#FFFFFF" stroke="#0C0C0E" stroke-width="2"/>
         </g>
@@ -122,7 +122,7 @@ pre{margin:0;padding:16px;font-family:var(--mono);font-size:13px;line-height:1.5
           <g class="m-link2" id="link2" style="transform-origin:360px 150px">
             <line x1="360" y1="150" x2="451" y2="176" stroke="#0C0C0E" stroke-width="12" stroke-linecap="round"/>
             <line x1="451" y1="176" x2="451" y2="196" stroke="#0C0C0E" stroke-width="10"/>
-            <rect x="441" y="190" width="20" height="6" fill="#E8662F"/>
+            <rect x="441" y="190" width="20" height="6" fill="#FFC400"/>
             <line x1="444" y1="196" x2="444" y2="222" stroke="#0C0C0E" stroke-width="4"/>
             <g class="m-finger" id="finger" style="transform-origin:458px 196px"><line x1="458" y1="196" x2="458" y2="222" stroke="#0C0C0E" stroke-width="4"/></g>
           </g>
@@ -222,11 +222,11 @@ function draw(on){
   $("cam").style.transform = f==="camera_moved" ? `translate(${amt*0.25}px, ${amt*0.18}px) rotate(${amt*0.22}deg)` : "";
   $("finger").style.transform = f==="tool_bent" ? `rotate(${-Math.min(60, amt*2.2)}deg)` : "";
   $("link2").style.transform = f==="encoder_bias" ? `rotate(${amt*0.25}deg)` : "";
-  $("j2").setAttribute("fill", f==="encoder_bias" ? "#E8662F" : "#FFFFFF");
-  $("cfgbox").setAttribute("stroke", f==="tcp_config" ? "#E8662F" : "#E3E3E6");
+  $("j2").setAttribute("fill", f==="encoder_bias" ? "#FFC400" : "#FFFFFF");
+  $("cfgbox").setAttribute("stroke", f==="tcp_config" ? "#FFC400" : "#DEDED8");
   $("cfgtext").textContent = f==="tcp_config" ? `[0, ${Math.round(amt*0.9)}, ${180+Math.round(amt*0.3)}]` : "[0, 0, 180]";
-  $("cfgtext").setAttribute("fill", f==="tcp_config" ? "#B8481A" : "#0C0C0E");
-  $("pcbox").setAttribute("stroke", f==="latency" ? "#E8662F" : "#0C0C0E");
+  $("cfgtext").setAttribute("fill", "#121212");
+  $("pcbox").setAttribute("stroke", f==="latency" ? "#FFC400" : "#121212");
   $("pctext").textContent = f==="latency" ? "v4.3 ⟳" : "v4.2";
 }
 
