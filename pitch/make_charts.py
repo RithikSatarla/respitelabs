@@ -34,8 +34,18 @@ ACCENT = "#FFC400"     # Kintrace, and only Kintrace
 GREY = "#C9C9C2"       # everything that is not us
 GO = "#0B7A2A"
 
+# Register the site's fonts so the charts match the deck and the website.
+# The files are in pitch/fonts/, downloaded from the Google Fonts repo.
+FONT_DIR = ROOT / "pitch" / "fonts"
+for _f in sorted(FONT_DIR.glob("*.ttf")):
+    matplotlib.font_manager.fontManager.addfont(str(_f))
+_names = {matplotlib.font_manager.FontProperties(fname=str(f)).get_name()
+          for f in FONT_DIR.glob("*.ttf")}
+SANS = "Schibsted Grotesk" if "Schibsted Grotesk" in _names else "Arial"
+MONO = "JetBrains Mono" if "JetBrains Mono" in _names else "Consolas"
+
 plt.rcParams.update({
-    "font.family": ["Arial", "Helvetica", "DejaVu Sans"],
+    "font.family": [SANS, "Arial", "DejaVu Sans"],
     "font.size": 16,
     "text.color": INK,
     "axes.labelcolor": SOFT,

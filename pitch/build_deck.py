@@ -20,10 +20,14 @@ CHARTS = ROOT / "pitch" / "charts"
 OUT = ROOT / "pitch" / "Kintrace-deck.pptx"
 
 # --- design system, matching the website -------------------------------
-# Arial stands in for the site's Archivo, which is a Google Font and would
-# substitute unpredictably in PowerPoint. Arial is Archivo's own declared
-# fallback in the site CSS, so the shape stays a plain grotesque.
-FONT = "Arial"
+# The website's faces, so the deck matches it.
+#
+# Both are Google Fonts. PowerPoint will substitute them on a machine that does
+# not have them installed, so the PDF, which is rendered from the web version
+# with the real fonts embedded, is the safe file to send. The TTFs are in
+# pitch/fonts/ if you want to install them locally.
+FONT = "Schibsted Grotesk"
+MONO = "JetBrains Mono"
 
 PAPER = RGBColor(0xF7, 0xF7, 0xF4)
 INK = RGBColor(0x12, 0x12, 0x12)
@@ -167,7 +171,8 @@ def s01_cover(prs):
     bar_y = 5.44
     shape(s, MSO_SHAPE.RECTANGLE, 6.60, bar_y, 4.62, 0.46, fill=INK)
     write(box(s, 6.82, bar_y + 0.12, 4.3, 0.3),
-          "camera moved 18.1 mm  ·  fixed", size=13, color=WHITE, bold=True)
+          "camera moved 18.1 mm  ·  fixed", size=12.5, color=WHITE, bold=True,
+          font=MONO)
     shape(s, MSO_SHAPE.RECTANGLE, 11.22, bar_y, 1.26, 0.46, fill=ACCENT)
     write(box(s, 11.22, bar_y + 0.10, 1.26, 0.3), "GO", size=15,
           bold=True, align=PP_ALIGN.CENTER)
@@ -228,7 +233,7 @@ def s02_what_we_do(prs):
 
         panel(s, x, BODY_TOP, w, 1.40)
         write(box(s, x + 0.26, BODY_TOP + 0.28, w - 0.5, 0.5), big,
-              size=26, bold=True, spacing=1.0)
+              size=24, bold=True, spacing=1.0, font=MONO)
         write(box(s, x + 0.26, BODY_TOP + 0.90, w - 0.5, 0.3), cap,
               size=11.5, color=SOFT)
 

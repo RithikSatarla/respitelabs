@@ -1,0 +1,89 @@
+{
+  "hero": {
+    "changedAt": "13:40:23",
+    "event": "collision detected, arm stopped",
+    "cameraMovedMm": 18.1,
+    "recordCameraSize": "21.2 mm, 0.11 deg (parts appear 23 mm off in the pick area)",
+    "status": "GO",
+    "testPicks": "6 / 6"
+  },
+  "stats": {
+    "robotsWorldwide": "5M",
+    "robotsLabel": "industrial robots working today",
+    "faultsFound": "120/120",
+    "faultsLabel": "faults named right, in simulation",
+    "onsetSeconds": 0.01,
+    "onsetLabel": "seconds to pin when it changed"
+  },
+  "measured": {
+    "incidents": "50/50",
+    "faults": "120/120",
+    "baseline": "83/120",
+    "driftsEarly": "19/20",
+    "falseAlarms": 0,
+    "healthyWindows": 230
+  },
+  "feed": [
+    {
+      "cell": "cell-1",
+      "text": "camera moved, tool bent",
+      "state": "go"
+    },
+    {
+      "cell": "cell-1",
+      "text": "tcp config",
+      "state": "go"
+    },
+    {
+      "cell": "cell-1",
+      "text": "camera moved, tool bent",
+      "state": "go"
+    },
+    {
+      "cell": "cell-2",
+      "text": "health check",
+      "state": "ok"
+    },
+    {
+      "cell": "cell-2",
+      "text": "health check",
+      "state": "ok"
+    },
+    {
+      "cell": "cell-2",
+      "text": "camera moved, tool bent",
+      "state": "go"
+    },
+    {
+      "cell": "cell-2",
+      "text": "camera moved, tool bent",
+      "state": "go"
+    },
+    {
+      "cell": "cell-2",
+      "text": "camera moved, tool bent",
+      "state": "go"
+    },
+    {
+      "cell": "cell-3",
+      "text": "health check",
+      "state": "ok"
+    },
+    {
+      "cell": "cell-3",
+      "text": "health check",
+      "state": "ok"
+    },
+    {
+      "cell": "cell-3",
+      "text": "encoder bias",
+      "state": "go"
+    },
+    {
+      "cell": "cell-3",
+      "text": "health check",
+      "state": "ok"
+    }
+  ],
+  "version": "v0.5"
+}
