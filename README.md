@@ -18,7 +18,7 @@ Website: [respitelabs.net](https://www.respitelabs.net). Contact: contact@respit
 | | Status |
 |---|---|
 | Simulated UR5e cell | 120/120 faults named and sized. See [Results](#results-simulation). |
-| Real Franka data (DROID) | Adapter built. Running now. See [DROID](#real-robot-data-droid-in-progress). |
+| Real Franka data (DROID) | Ran on 50 DROID episodes: injected delays caught 145/150. Camera, encoder and tool checks wait on a gripper detector. See [DROID](#real-robot-data-droid-in-progress). |
 | Real arm (SO-101 desk rig) | Hardware on order. Nothing measured yet. |
 | Someone else's robot | Not yet. Send one recording and we'll run it: `kintrace import` + `kintrace check`. |
 
@@ -234,6 +234,20 @@ Two levels of result:
    Injected faults on the same fixture: latency 72/72 at 10 to 50 ms, tool
    offset 33/33, encoder drift 17/22 at 10 and 20 mm of tip motion and 1/11
    at 5 mm (under the 3 mm detector noise assumed). Pipeline tests, not results.
+
+### What has run on real DROID data (50 episodes, Oct 2026)
+
+Raw output: [RESULTS_DROID.txt](RESULTS_DROID.txt).
+
+- **DROID corrected extrinsics, all entries.** 36084 entries: 30790 GT (85.3%),
+  5294 Pred (14.7%).
+- **Our DROID sample.** 50 episodes, one fixed camera each: 43 GT, 7 Pred.
+- **Commands late (injected delays on real Franka joint streams).** Caught
+  145/150: 48/50 at 10 ms, 48/50 at 20 ms, 49/50 at 50 ms. Size error median
+  4.40 ms.
+- **Encoder zero drifted.** Not run. Waits on the gripper detector.
+- **Tool offset edited.** Not run. Waits on the gripper detector.
+- **Camera moved.** Not run on real frames. Waits on the gripper detector.
 
 ## Real arm results
 

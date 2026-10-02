@@ -60,7 +60,7 @@ def _load_all(data: str):
         if corr is None:
             print(f"skip {m.get('path')}: no corrected extrinsics", file=sys.stderr)
             continue
-        ep.meta["_corrected"] = corrected.meta(m.get("path", "")) or corrected.meta(m.get("key", "")) or {}
+        ep.meta["_corrected"] = corrected.meta(m.get("path", "")) or corrected.meta(m.get("key", ""))
         fixed = {s: T for s, T in ep.configured.items() if s != ep.serials.get("wrist")}
         labels = labels_for(fixed, corr)
         if labels:
@@ -127,7 +127,7 @@ def run_labels(data: str) -> dict:
 def run_survey(data: str) -> dict:
     """The whole corrected set, no episodes needed: how many entries DROID kept vs re-solved."""
     corrected = Corrected.load(data)
-    metas = [corrected.meta(k) or {} for k in corrected.keys()]
+    metas = [corrected.meta(k) for k in corrected.keys()]
     groups = {}
     for m in metas:
         groups.setdefault(m.get("source", "?"), []).append(m)
@@ -137,11 +137,11 @@ def run_survey(data: str) -> dict:
         ms = groups[src]
         q = np.array([m["quality_metric"] for m in ms if isinstance(m.get("quality_metric"), (int, float))])
         types = sorted({str(m.get("metric_type", "?")) for m in ms})
-        g = dict(n=len(ms), metric_type=types[0] if len(types) == 1 else types)
+        g = dict(n=len(ms), percent=100 * len(ms) / max(len(metas), 1), metric_type=types[0] if len(types) == 1 else types)
         if q.size:
-            g["quality_metric"] = {f"p{p}": float(np.percentile(q, p)) for p in (10, 25, 50, 75, 90)}
+            g["quality_metric"] = {f"p{p}": float(np.percentile(q, p)) for p in (10, 50, 90)}
         summary["groups"][src] = g
-        line = f"  {src:5s} {len(ms):6d}  quality_metric ({', '.join(types)})"
+        line = f"  {src:5s} {len(ms):6d} ({g['percent']:.1f}%)  quality_metric ({', '.join(types)})"
         if q.size:
             line += "  " + "  ".join(f"{k} {v:.3f}" for k, v in g["quality_metric"].items())
         print(line)

@@ -1,0 +1,46 @@
+$ python -m kintrace.droid survey --data data/droid
+DROID corrected extrinsics: 36084 entries
+  GT     30790 (85.3%)  quality_metric (IoU)  p10 0.731  p50 0.827  p90 0.906
+  Pred    5294 (14.7%)  quality_metric (Reprojection_error)  p10 3.391  p50 7.466  p90 15.687
+  quality_metric is a different measure in each group, so compare within a group only
+GT = DROID kept the original calibration. Pred = DROID re-solved it. Only Pred entries can show a moved camera, and a Pred difference is camera movement or a calibration that was never right; the data cannot tell which.
+wrote data/droid\survey.json
+[exit 0]
+
+$ python -m kintrace.droid labels --data data/droid
+DROID camera labels: 50 fixed cameras over 50 episodes
+  configured pose off by > 10 mm or > 1 deg:  14%
+  translation error  median 0.0 mm   p90 44.0 mm   max 87.0 mm
+  rotation error     median 0.00 deg  p90 4.19 deg  max 23.66 deg
+  by source: GT 43, Pred 7
+  Pred only (7 cameras), off by > 10 mm or > 1 deg:  100%
+    translation error  median 60.3 mm   p90 77.8 mm   max 87.0 mm
+    rotation error     median 5.77 deg  p90 19.40 deg  max 23.66 deg
+GT = DROID kept the original calibration. Pred = DROID re-solved it. Only Pred entries can show a moved camera, and a Pred difference is camera movement or a calibration that was never right; the data cannot tell which.
+wrote data/droid\labels.json
+[exit 0]
+
+$ python -m kintrace.droid faults --data data/droid
+DROID injected faults: real frames where vision was needed
+  latency       145/150 named and sized, size error median 4.40 ms   (real joint streams, delay injected)
+                10 ms: 48/50   20 ms: 48/50   50 ms: 49/50
+  encoder_bias  not run (needs a located gripper)
+  tcp_config    not run (needs a located gripper)
+  tool_bent     not possible on DROID (nothing in the data records the tool)
+wrote data/droid\faults.json
+[exit 0]
+
+$ python -m kintrace.droid detect --data data/droid --synthetic
+skip ILIAD/failure/2023-07-19/Wed_Jul_19_12:09:14_2023 27904255: only 1 frames with the gripper located
+DROID detect run: synthetic detections (pipeline test, not a real-image result)
+  49 cameras, 7 moved per the labels
+  caught 7/7 moved cameras (recall 100%), 0 false alarms on 42 fine cameras
+  size error on caught cameras: median 0.7 mm, p90 3.6 mm
+wrote data/droid\detect_synthetic.json
+[exit 0]
+
+$ python -m pytest tests -q
+.................................sssss........                           [100%]
+41 passed, 5 skipped in 101.00s (0:01:41)
+[exit 0]
+

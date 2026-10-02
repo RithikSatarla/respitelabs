@@ -112,10 +112,10 @@ class Corrected:
         k = self._find(episode_key)
         return self.by_key[k] if k is not None else None
 
-    def meta(self, episode_key: str) -> dict | None:
-        """The entry's non-pose fields (source, quality_metric, metric_type, relative_path)."""
+    def meta(self, episode_key: str) -> dict:
+        """The entry's non-pose fields (source, quality_metric, metric_type, relative_path). {} if unknown."""
         k = self._find(episode_key)
-        return (self.meta_by_key or {}).get(k) if k is not None else None
+        return dict((self.meta_by_key or {}).get(k, {})) if k is not None else {}
 
     def keys(self):
         seen, out = set(), []
