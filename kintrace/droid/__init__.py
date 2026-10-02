@@ -4,7 +4,7 @@ DROID (droid-dataset.github.io) is 76k teleop episodes on Franka Panda arms
 with two fixed ZED stereo cameras and a wrist camera. Each episode stores
 the camera-to-base extrinsics the cell was *configured* with. In 2025 the
 DROID team re-solved those extrinsics for ~36k episodes and published the
-corrected values (huggingface.co/datasets/KarlP/droid), because cameras had
+corrected values (huggingface.co/KarlP/droid), because cameras had
 been bumped and never re-calibrated during collection.
 
 That gives us the thing the check layer is built to catch, on real robots,

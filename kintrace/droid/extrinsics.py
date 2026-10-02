@@ -44,6 +44,7 @@ def pose_error(T_belief, T_truth) -> dict:
 # the corrected set from KarlP/droid
 # --------------------------------------------------------------------------
 _SIDES = ("_left", "_right")
+META_FIELDS = ("source", "quality_metric", "metric_type", "relative_path")
 
 
 def _strip_side(serial: str) -> str:
@@ -58,6 +59,7 @@ class Corrected:
     """cam2base_extrinsics.json, indexed so lookups work by episode path or id."""
     by_key: dict  # key -> {serial: 4x4}
     id_to_path: dict
+    meta_by_key: dict = None  # key -> {source, quality_metric, metric_type, relative_path} as present
 
     @staticmethod
     def load(root: str) -> "Corrected":
@@ -68,11 +70,13 @@ class Corrected:
         if os.path.exists(p):
             with open(p, encoding="utf-8") as f:
                 id_to_path = json.load(f)
-        by_key = {}
+        by_key, meta_by_key = {}, {}
         for key, cams in raw.items():
             if not isinstance(cams, dict):
                 continue
             entry = {}
+            # GT entries carry relative_path, Pred entries do not
+            meta = {k: cams[k] for k in META_FIELDS if k in cams}
             # the left ZED sensor is the one the DROID extrinsics are defined for;
             # keep it when both sides are listed
             for serial, pose in sorted(cams.items(), key=lambda kv: not str(kv[0]).endswith("_left")):
@@ -86,22 +90,32 @@ class Corrected:
             if entry:
                 by_key[key] = entry
                 by_key[key.rstrip("/")] = entry
-        return Corrected(by_key, id_to_path)
+                meta_by_key[key] = meta_by_key[key.rstrip("/")] = meta
+        return Corrected(by_key, id_to_path, meta_by_key)
 
     def __len__(self):
         return len({id(v) for v in self.by_key.values()})
 
-    def lookup(self, episode_key: str) -> dict | None:
-        """episode_key may be the episode id, its path, or a tail of the path."""
+    def _find(self, episode_key: str) -> str | None:
         for k in (episode_key, self.id_to_path.get(episode_key, ""), episode_key.rstrip("/")):
             if k and k in self.by_key:
-                return self.by_key[k]
+                return k
         # tolerate a path prefix difference (bucket root vs relative)
         tail = episode_key.rstrip("/").split("/")[-1]
-        for k, v in self.by_key.items():
+        for k in self.by_key:
             if k.rstrip("/").endswith(tail):
-                return v
+                return k
         return None
+
+    def lookup(self, episode_key: str) -> dict | None:
+        """episode_key may be the episode id, its path, or a tail of the path."""
+        k = self._find(episode_key)
+        return self.by_key[k] if k is not None else None
+
+    def meta(self, episode_key: str) -> dict | None:
+        """The entry's non-pose fields (source, quality_metric, metric_type, relative_path)."""
+        k = self._find(episode_key)
+        return (self.meta_by_key or {}).get(k) if k is not None else None
 
     def keys(self):
         seen, out = set(), []

@@ -40,6 +40,9 @@ from .extrinsics import Corrected, labels_for
 
 MOVED_MM = 10.0   # a camera this far from its configured pose counts as "moved"
 MOVED_DEG = 1.0
+GT_PRED_NOTE = ("GT = DROID kept the original calibration. Pred = DROID re-solved it. "
+                "Only Pred entries can show a moved camera, and a Pred difference is camera movement "
+                "or a calibration that was never right; the data cannot tell which.")
 
 
 def _load_all(data: str):
@@ -57,6 +60,7 @@ def _load_all(data: str):
         if corr is None:
             print(f"skip {m.get('path')}: no corrected extrinsics", file=sys.stderr)
             continue
+        ep.meta["_corrected"] = corrected.meta(m.get("path", "")) or corrected.meta(m.get("key", "")) or {}
         fixed = {s: T for s, T in ep.configured.items() if s != ep.serials.get("wrist")}
         labels = labels_for(fixed, corr)
         if labels:
@@ -74,6 +78,7 @@ def run_labels(data: str) -> dict:
     for ep, labels in _load_all(data):
         for serial, l in labels.items():
             rows.append(dict(episode=ep.key, lab=ep.meta.get("lab", ""), camera=serial,
+                             source=ep.meta["_corrected"].get("source", ""),
                              translation_mm=l["translation_mm"], rotation_deg=l["rotation_deg"], moved=_moved(l)))
     if not rows:
         raise SystemExit("no labelled cameras found. Run `python -m kintrace.droid download` first.")
@@ -88,6 +93,17 @@ def run_labels(data: str) -> dict:
         translation_mm=dict(median=float(np.median(t)), p90=float(np.percentile(t, 90)), max=float(t.max())),
         rotation_deg=dict(median=float(np.median(r_)), p90=float(np.percentile(r_, 90)), max=float(r_.max())),
     )
+    pred = [r for r in rows if r["source"] == "Pred"]
+    summary["by_source"] = {"GT": sum(r["source"] == "GT" for r in rows), "Pred": len(pred)}
+    if pred:
+        tp = np.array([r["translation_mm"] for r in pred])
+        rp = np.array([r["rotation_deg"] for r in pred])
+        summary["pred_only"] = dict(
+            cameras=len(pred), fraction_moved=float(np.mean([r["moved"] for r in pred])),
+            translation_mm=dict(median=float(np.median(tp)), p90=float(np.percentile(tp, 90)), max=float(tp.max())),
+            rotation_deg=dict(median=float(np.median(rp)), p90=float(np.percentile(rp, 90)), max=float(rp.max())),
+        )
+    summary["note"] = GT_PRED_NOTE
     out = dict(summary=summary, rows=rows)
     path = os.path.join(data, "labels.json")
     with open(path, "w", encoding="utf-8") as f:
@@ -96,8 +112,47 @@ def run_labels(data: str) -> dict:
     print(f"  configured pose off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg:  {100*summary['fraction_moved']:.0f}%")
     print(f"  translation error  median {summary['translation_mm']['median']:.1f} mm   p90 {summary['translation_mm']['p90']:.1f} mm   max {summary['translation_mm']['max']:.1f} mm")
     print(f"  rotation error     median {summary['rotation_deg']['median']:.2f} deg  p90 {summary['rotation_deg']['p90']:.2f} deg  max {summary['rotation_deg']['max']:.2f} deg")
+    print(f"  by source: GT {summary['by_source']['GT']}, Pred {summary['by_source']['Pred']}")
+    if pred:
+        po = summary["pred_only"]
+        print(f"  Pred only ({po['cameras']} cameras), off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg:  {100*po['fraction_moved']:.0f}%")
+        print(f"    translation error  median {po['translation_mm']['median']:.1f} mm   p90 {po['translation_mm']['p90']:.1f} mm   max {po['translation_mm']['max']:.1f} mm")
+        print(f"    rotation error     median {po['rotation_deg']['median']:.2f} deg  p90 {po['rotation_deg']['p90']:.2f} deg  max {po['rotation_deg']['max']:.2f} deg")
+    print(GT_PRED_NOTE)
     print(f"wrote {path}")
     return out
+
+
+# --------------------------------------------------------------------------
+def run_survey(data: str) -> dict:
+    """The whole corrected set, no episodes needed: how many entries DROID kept vs re-solved."""
+    corrected = Corrected.load(data)
+    metas = [corrected.meta(k) or {} for k in corrected.keys()]
+    groups = {}
+    for m in metas:
+        groups.setdefault(m.get("source", "?"), []).append(m)
+    summary = dict(source="KarlP/droid cam2base_extrinsics.json", entries=len(metas), groups={})
+    print(f"DROID corrected extrinsics: {len(metas)} entries")
+    for src in sorted(groups):
+        ms = groups[src]
+        q = np.array([m["quality_metric"] for m in ms if isinstance(m.get("quality_metric"), (int, float))])
+        types = sorted({str(m.get("metric_type", "?")) for m in ms})
+        g = dict(n=len(ms), metric_type=types[0] if len(types) == 1 else types)
+        if q.size:
+            g["quality_metric"] = {f"p{p}": float(np.percentile(q, p)) for p in (10, 25, 50, 75, 90)}
+        summary["groups"][src] = g
+        line = f"  {src:5s} {len(ms):6d}  quality_metric ({', '.join(types)})"
+        if q.size:
+            line += "  " + "  ".join(f"{k} {v:.3f}" for k, v in g["quality_metric"].items())
+        print(line)
+    print("  quality_metric is a different measure in each group, so compare within a group only")
+    summary["note"] = GT_PRED_NOTE
+    print(GT_PRED_NOTE)
+    path = os.path.join(data, "survey.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+    print(f"wrote {path}")
+    return summary
 
 
 # --------------------------------------------------------------------------
@@ -184,9 +239,9 @@ def run_faults(data: str, synthetic: bool = False, every: int = 1, sigma_mm: flo
                 from .convert import to_log
                 plain = to_log(ep, serial, l["belief"], np.zeros((len(ep.t), 1, 3)), np.zeros(len(ep.t), bool))
                 have_vision = False
-            tau0 = estimate_delay(plain)
+            tau0 = estimate_delay(plain, plain.config.get("delay_search_s", 0.2))
             for d in delays_ms:
-                tau1 = estimate_delay(_shift_measured(plain, d / 1000))
+                tau1 = estimate_delay(_shift_measured(plain, d / 1000), plain.config.get("delay_search_s", 0.2))
                 est = (tau1 - tau0) * 1000
                 rows.append(dict(fault="latency", episode=ep.key, camera=serial, injected=d, estimated=est,
                                  caught=abs(est) >= 4.0, size_error=abs(est - d), vision=False,
@@ -268,6 +323,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="python -m kintrace.droid", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("download", add_help=False)
+    p = sub.add_parser("survey")
+    p.add_argument("--data", default="data/droid")
     p = sub.add_parser("labels")
     p.add_argument("--data", default="data/droid")
     p = sub.add_parser("detect")
@@ -287,7 +344,9 @@ def main(argv=None):
     if argv and argv[0] == "download":
         return download.main(argv[1:])
     a = ap.parse_args(argv)
-    if a.cmd == "labels":
+    if a.cmd == "survey":
+        run_survey(a.data)
+    elif a.cmd == "labels":
         run_labels(a.data)
     elif a.cmd == "detect":
         run_detect(a.data, a.synthetic, a.every, a.sigma_mm, a.seed)

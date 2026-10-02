@@ -1,7 +1,7 @@
 """Fetch the corrected extrinsics and a sample of raw DROID episodes.
 
 Both sources are public, no account needed:
-  corrected extrinsics   https://huggingface.co/datasets/KarlP/droid
+  corrected extrinsics   https://huggingface.co/KarlP/droid
   raw episodes           gs://gresearch/robotics/droid_raw/1.0.1/  (read via the public HTTPS endpoint)
 
 Usage
@@ -19,7 +19,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-HF_BASE = "https://huggingface.co/datasets/KarlP/droid/resolve/main/"
+HF_BASE = "https://huggingface.co/KarlP/droid/resolve/main/"
 HF_FILES = ["cam2base_extrinsics.json", "episode_id_to_path.json", "intrinsics.json"]
 GCS_BUCKET = "gresearch"
 GCS_PREFIX = "robotics/droid_raw/1.0.1/"
@@ -74,7 +74,8 @@ def list_episode_files(episode_path: str) -> list:
 
 
 def fetch_episode(episode_path: str, out: str, video: bool = False, fixed_serials=()) -> str:
-    dest_dir = os.path.join(out, "episodes", episode_path.strip("/"))
+    # episode folders are named like Sun_Jun__4_20:04:15_2023; ':' is not allowed on Windows
+    dest_dir = os.path.join(out, "episodes", episode_path.strip("/").replace(":", "_"))
     files = list_episode_files(episode_path)
     if not files:
         raise FileNotFoundError(f"no files under gs://{GCS_BUCKET}/{GCS_PREFIX}{episode_path}")

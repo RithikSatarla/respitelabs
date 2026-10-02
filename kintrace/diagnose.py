@@ -42,8 +42,8 @@ def _interp(t_src, q_src, t):
     return np.stack([np.interp(t, t_src, q_src[:, i]) for i in range(q_src.shape[1])], 1)
 
 
-def estimate_delay(log: Log) -> float:
-    """Command-to-motion delay (s), robust to constant encoder offsets."""
+def estimate_delay(log: Log, max_s: float = 0.2) -> float:
+    """Command-to-motion delay (s), robust to constant encoder offsets. Searched over 0..max_s."""
     moving = np.linalg.norm(np.gradient(log.q_cmd, axis=0), axis=1) > 1e-5
 
     def cost(tau):
@@ -52,7 +52,7 @@ def estimate_delay(log: Log) -> float:
         d = d - d.mean(0)
         return np.mean(d**2)
 
-    grid = np.arange(0.0, 0.2, 0.001)
+    grid = np.arange(0.0, max_s, 0.001)
     c = np.array([cost(x) for x in grid])
     i = int(np.argmin(c))
     lo, hi = grid[max(i - 1, 0)], grid[min(i + 1, len(grid) - 1)]
@@ -104,7 +104,7 @@ def self_baseline(log: Log, sigma_mm: float = 4.0) -> dict:
     cfg = log.config
     has_cmd = cfg.get("has_commands", True)
     return dict(
-        tau=estimate_delay(log) if has_cmd else 0.0,
+        tau=estimate_delay(log, cfg.get("delay_search_s", 0.2)) if has_cmd else 0.0,
         sigma_cam=[sigma_mm / 1000] * 3,
         tcp_offset=cfg["tcp_offset"],
         camera_extrinsic=cfg["camera_extrinsic"],
@@ -363,7 +363,7 @@ def diagnose(log: Log, baseline: dict, run_probe: bool = False) -> Diagnosis:
 
     # 1. command timing ---------------------------------------------------
     has_cmd = cfg.get("has_commands", True)
-    tau = estimate_delay(log) if has_cmd else baseline["tau"]
+    tau = estimate_delay(log, cfg.get("delay_search_s", 0.2)) if has_cmd else baseline["tau"]
     d_tau = tau - baseline["tau"]
     tau_tol = 0.004
     if has_cmd:

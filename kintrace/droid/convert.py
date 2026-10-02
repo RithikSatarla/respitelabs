@@ -49,6 +49,8 @@ def _config(ep: Episode, serial: str, T_belief: np.ndarray) -> dict:
         "droid_episode": ep.key,
         "droid_lab": ep.meta.get("lab", ""),
         "source": "droid_raw_1.0.1",
+        # DROID's command-to-motion lag runs past the 0.2 s default (it pinned there on 48/50 episodes)
+        "delay_search_s": 1.5,
     }
 
 

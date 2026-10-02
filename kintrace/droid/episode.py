@@ -83,6 +83,16 @@ def _first(h5, keys):
     return None
 
 
+def _seconds(a) -> np.ndarray:
+    """Epoch timestamps to seconds. DROID 1.0.1 logs them as int64 milliseconds."""
+    a = np.asarray(a, dtype=float)
+    if a.max() > 1e15:     # nanoseconds
+        return a / 1e9
+    if a.max() > 1e11:     # milliseconds
+        return a / 1e3
+    return a
+
+
 def load(path: str, key: str | None = None) -> Episode:
     import h5py
 
@@ -109,14 +119,14 @@ def load(path: str, key: str | None = None) -> Episode:
             missing.append(GRIPPER)
             grip = np.zeros(n)
         t = _first(h5, list(T_ROBOT))
+        t0 = None
         if t is None:
             missing.append(T_ROBOT[0])
             t = np.arange(n) / DEFAULT_HZ
         else:
-            t = t.astype(float)
-            if t.max() > 1e9 * 1000:   # nanoseconds
-                t = t / 1e9
-            t = t - t[0]
+            t = _seconds(t)
+            t0 = t[0]
+            t = t - t0
         per_step, t_cam = {}, {}
         if CAM_EXT in h5:
             for name in h5[CAM_EXT]:
@@ -129,10 +139,8 @@ def load(path: str, key: str | None = None) -> Episode:
             for name in h5[T_CAM_PREFIX]:
                 if name.endswith("_estimated_capture"):
                     serial = name[: -len("_estimated_capture")]
-                    tc = np.asarray(h5[T_CAM_PREFIX][name]).astype(float)
-                    if tc.max() > 1e9 * 1000:
-                        tc = tc / 1e9
-                    t_cam[serial] = tc
+                    tc = _seconds(np.asarray(h5[T_CAM_PREFIX][name]))
+                    t_cam[serial] = tc - t0 if t0 is not None else tc - tc[0]
     configured = configured_from_metadata(meta)
     if not configured and per_step:
         # metadata missing: fall back to the first logged per-step pose

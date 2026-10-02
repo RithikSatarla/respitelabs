@@ -184,15 +184,20 @@ dropouts and unmodeled effects. The two sections below are how we get past that.
 [DROID](https://droid-dataset.github.io/) is 76k episodes on Franka Panda arms
 with fixed stereo cameras. Each episode records the camera extrinsics the cell
 was configured with. In 2025 the DROID team re-solved the extrinsics for ~36k
-episodes ([KarlP/droid](https://huggingface.co/datasets/KarlP/droid)) because
+episodes ([KarlP/droid](https://huggingface.co/KarlP/droid)) because
 cameras had moved during collection and nobody had re-calibrated. That is the
 fault the check exists for, on real robots, with ground truth: the configured
 pose is the belief, the corrected pose is the truth.
+
+GT = DROID kept the original calibration. Pred = DROID re-solved it. Only Pred
+entries can show a moved camera, and a Pred difference is camera movement or a
+calibration that was never right; the data cannot tell which.
 
 `kintrace/droid/` is the adapter. Franka Panda kinematics are in `arms.py`.
 
 ```
 python -m kintrace.droid download --out data/droid --episodes 50   # extrinsics JSONs + 50 raw episodes
+python -m kintrace.droid survey   --data data/droid                 # GT vs Pred across the whole corrected set
 python -m kintrace.droid labels   --data data/droid                 # how far configured cameras were from the truth
 python -m kintrace.droid faults   --data data/droid                 # inject the other faults into real logs
 python -m kintrace.droid detect   --data data/droid --synthetic     # pipeline test with synthetic detections
