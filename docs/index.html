@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kintrace</title>
-<meta name="description" content="Physical observability for robots in production. Kintrace checks that a robot arm is physically what its software thinks it is. After a crash or a change it finds what moved, writes the fix and certifies the cell GO or NO-GO.">
+<title>Respite Labs</title>
+<meta name="description" content="Physical observability for robots in production. Respite Labs checks that a robot arm is physically what its software thinks it is. After a crash or a change it finds what moved, writes the fix and certifies the cell GO or NO-GO.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -267,7 +267,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-bet
 
 <header>
   <div class="wrap nav">
-    <a class="logo" href="#top" aria-label="Kintrace, top of page">KINTRACE<span>.</span></a>
+    <a class="logo" href="#top" aria-label="Respite Labs, top of page">RESPITE LABS<span>.</span></a>
     <nav aria-label="Sections">
       <a href="play/">Crash it</a><a href="#scenarios">Scenarios</a><a href="#layers">Layers</a><a href="#system">System</a><a href="#evidence">Evidence</a><a href="#rig">Rig</a><a href="#contact">Contact</a>
     </nav>
@@ -281,17 +281,17 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-bet
   <div class="wrap">
     <p class="label"><b>//</b> Physical observability for robots in production</p>
     <h1>Observability for the robot's <em>body.</em></h1>
-    <p class="line"><span>Ember watches the code.</span><span>Kintrace watches the body.</span></p>
-    <p class="lede">Kintrace checks that a robot arm is physically what its software thinks it is. When a crash or a change moves something, it tells you what moved, by how much and when. Then it writes the fix to the controller, re-checks the cell and calls it GO or NO-GO.</p>
+    <p class="line"><span>Ember watches the code.</span><span>Respite Labs watches the body.</span></p>
+    <p class="lede">Respite Labs checks that a robot arm is physically what its software thinks it is. When a crash or a change moves something, it tells you what moved, by how much and when. Then it writes the fix to the controller, re-checks the cell and calls it GO or NO-GO.</p>
     <div class="ctas">
       <a class="btn" href="#scenarios">Pick a scenario →</a>
       <a class="btn ghost" href="play/">Crash it yourself →</a>
       <a class="btn ghost" href="demo/">Open the full demo</a>
     </div>
 
-    <div class="term" role="group" aria-label="Example Kintrace record after a crash">
+    <div class="term" role="group" aria-label="Example Respite Labs record after a crash">
       <div class="bar"><span>$ kintrace incident --scenario crash</span><span>cell 3 · simulated</span></div>
-<pre><span class="dim">KINTRACE  recommission record, Cell 3</span>
+<pre><span class="dim">RESPITE LABS  recommission record, Cell 3</span>
 Changed at   : <span class="hi">13:40:23</span>  lines up with protective stop at 13:40:23
 What changed : camera moved <span class="hi">21.2 mm</span> · gripper bent, fingertip moved <span class="hi">24.4 mm</span>
 Fix written  : camera calibration updated · tool offset → [-2.7, 24.0, 183.8] mm
@@ -306,7 +306,7 @@ STATUS       : <span class="ok">GO</span></pre>
   <div class="wrap">
     <p class="label"><b>// 01</b> · Scenarios</p>
     <h2 id="scn-h">Something just happened to your robot. Pick one.</h2>
-    <p class="lede">Each tab is a real run of the prototype on a simulated UR5e-class pick cell. The chart is the robot's own log. The record is the file Kintrace wrote, unedited.</p>
+    <p class="lede">Each tab is a real run of the prototype on a simulated UR5e-class pick cell. The chart is the robot's own log. The record is the file Respite Labs wrote, unedited.</p>
     <div class="tabs" role="tablist" aria-label="What happened"><button type="button" role="tab" id="t-crash" aria-controls="p-crash" aria-selected="true" tabindex="0">Crash</button><button type="button" role="tab" id="t-tcp_edit" aria-controls="p-tcp_edit" aria-selected="false" tabindex="-1">Tool offset edit</button><button type="button" role="tab" id="t-joint_service" aria-controls="p-joint_service" aria-selected="false" tabindex="-1">Joint service</button><button type="button" role="tab" id="t-software_update" aria-controls="p-software_update" aria-selected="false" tabindex="-1">Software update</button><button type="button" role="tab" id="t-drift" aria-controls="p-drift" aria-selected="false" tabindex="-1">Slow drift</button></div>
     
 <div class="panel" role="tabpanel" id="p-crash" aria-labelledby="t-crash" tabindex="0">
@@ -333,7 +333,7 @@ STATUS       : <span class="ok">GO</span></pre>
   </div>
   <div class="term rec">
     <div class="bar"><span>$ kintrace incident --scenario crash</span><span>crash_record.txt</span></div>
-<pre>KINTRACE  recommission record, Cell 3
+<pre>RESPITE LABS  recommission record, Cell 3
 ================================================================
 Changed at   : <span class="hi">13:40:23</span>  (lines up with protective stop at <span class="hi">13:40:23</span>: collision detected, arm stopped)
    seen in    : camera vs arm at <span class="hi">13:40:23</span>
@@ -383,7 +383,7 @@ STATUS: <span class="ok">GO</span></pre>
   </div>
   <div class="term rec">
     <div class="bar"><span>$ kintrace incident --scenario tcp_edit</span><span>tcp_edit_record.txt</span></div>
-<pre>KINTRACE  recommission record, Cell 3
+<pre>RESPITE LABS  recommission record, Cell 3
 ================================================================
 Changed at   : <span class="hi">13:40:23</span>  (lines up with config change at <span class="hi">13:40:23</span>: installation file reloaded)
    seen in    : controller setting &#x27;tcp_offset&#x27; changed at <span class="hi">13:40:23</span>
@@ -430,7 +430,7 @@ STATUS: <span class="ok">GO</span></pre>
   </div>
   <div class="term rec">
     <div class="bar"><span>$ kintrace incident --scenario joint_service</span><span>joint_service_record.txt</span></div>
-<pre>KINTRACE  recommission record, Cell 3
+<pre>RESPITE LABS  recommission record, Cell 3
 ================================================================
 Changed at   : <span class="hi">13:40:23</span>  (lines up with maintenance at <span class="hi">13:40:23</span>: joint service, arm power-cycled)
    seen in    : camera vs arm at <span class="hi">13:40:23</span>
@@ -477,7 +477,7 @@ STATUS: <span class="ok">GO</span></pre>
   </div>
   <div class="term rec">
     <div class="bar"><span>$ kintrace incident --scenario software_update</span><span>software_update_record.txt</span></div>
-<pre>KINTRACE  recommission record, Cell 3
+<pre>RESPITE LABS  recommission record, Cell 3
 ================================================================
 Changed at   : <span class="hi">13:40:23</span>  (lines up with software update at <span class="hi">13:40:23</span>: cell PC updated)
    seen in    : command timing at <span class="hi">13:40:23</span>
@@ -497,7 +497,7 @@ STATUS: <span class="bad">NO-GO</span>  (commands are arriving late; needs a sof
       <p class="story">No crash, no edit, no service. A camera mount sags. A joint creeps. Picks still land, so nobody looks. Then they stop landing. <code>kintrace watch</code> reads the logs the robot already writes, with no check motion, scores the robot's physical health every 10 s, and warns before the first miss.</p>
       <figure class="fig">
         <figcaption class="figcap"><span>physical health score, 0 to 100 · simulated camera sag, sped up</span><span>measured</span></figcaption>
-        <svg viewBox="0 0 640 230" class="tl" role="img" aria-label="Health score falls from 98 to 0 as the camera sags. Kintrace warns at 60 s with health 71, the first pick misses at 115 s." style="width:100%;height:auto;font-family:var(--mono)">
+        <svg viewBox="0 0 640 230" class="tl" role="img" aria-label="Health score falls from 98 to 0 as the camera sags. Respite Labs warns at 60 s with health 71, the first pick misses at 115 s." style="width:100%;height:auto;font-family:var(--mono)">
 <line x1="40" x2="628" y1="196.0" y2="196.0" stroke="var(--rule)"/><text x="34" y="200.0" text-anchor="end" fill="var(--faint)" font-size="11">0</text><line x1="40" x2="628" y1="153.0" y2="153.0" stroke="var(--rule)"/><text x="34" y="157.0" text-anchor="end" fill="var(--faint)" font-size="11">25</text><line x1="40" x2="628" y1="110.0" y2="110.0" stroke="var(--rule)"/><text x="34" y="114.0" text-anchor="end" fill="var(--faint)" font-size="11">50</text><line x1="40" x2="628" y1="67.0" y2="67.0" stroke="var(--rule)"/><text x="34" y="71.0" text-anchor="end" fill="var(--faint)" font-size="11">75</text><line x1="40" x2="628" y1="24.0" y2="24.0" stroke="var(--rule)"/><text x="34" y="28.0" text-anchor="end" fill="var(--faint)" font-size="11">100</text><text x="40.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">0s</text><text x="124.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">30s</text><text x="208.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">60s</text><text x="292.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">90s</text><text x="376.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">120s</text><text x="460.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">150s</text><text x="544.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">180s</text><text x="628.0" y="218" text-anchor="middle" fill="var(--faint)" font-size="11">210s</text>
 <rect x="208.2" y="24" width="153.8" height="172" fill="var(--signal)" opacity=".10"/>
 <polyline points="68.2,26.8 96.2,26.1 124.2,28.8 152.2,45.2 180.2,57.5 208.2,73.9 236.2,92.5 264.2,108.1 292.2,124.3 320.2,139.6 348.2,154.9 376.2,176.0 404.2,188.4 432.2,196.0 460.2,196.0 488.2,196.0 516.2,196.0 544.2,196.0 572.2,196.0 600.2,196.0" fill="none" stroke="var(--ink)" stroke-width="2.2"/>
@@ -521,7 +521,7 @@ STATUS: <span class="bad">NO-GO</span>  (commands are arriving late; needs a sof
   </div>
   <div class="term rec">
     <div class="bar"><span>$ kintrace watch --sim camera_sag --seed 3</span><span>watch output</span></div>
-<pre>KINTRACE WATCH  simulated camera_sag (seed 3)
+<pre>RESPITE LABS WATCH  simulated camera_sag (seed 3)
 ================================================================
 window 10 s, tolerance 8 mm sideways / 15 mm up-down, warn at 15% used
 
@@ -560,7 +560,7 @@ WARNING at 06:01:00  health 71/100
   <div class="wrap">
     <p class="label"><b>// 02</b> · Layers</p>
     <h2 id="lay-h">Two layers. Two different jobs.</h2>
-    <p class="lede">Ember's line is "Know what changed. Know what failed." It is a good line, and for software it is the right one: releases, logs, telemetry, fleet hardware, for the engineers who build robots. Kintrace sits one layer down. It asks whether the robot's body still matches what the software believes, for the teams who run robots in production.</p>
+    <p class="lede">Ember's line is "Know what changed. Know what failed." It is a good line, and for software it is the right one: releases, logs, telemetry, fleet hardware, for the engineers who build robots. Respite Labs sits one layer down. It asks whether the robot's body still matches what the software believes, for the teams who run robots in production.</p>
 
     <div class="layers" role="group" aria-label="Layer diagram">
       <div class="layer">
@@ -569,7 +569,7 @@ WARNING at 06:01:00  health 71/100
         <div class="q">"Which release broke it?"</div>
       </div>
       <div class="layer phys">
-        <div class="ln">// physical layer<b>Kintrace</b></div>
+        <div class="ln">// physical layer<b>Respite Labs</b></div>
         <div class="w">camera pose · tool offset · joint zeros · command timing</div>
         <div class="q">"Is this robot physically what its software thinks it is? If not, what moved? Put it back."</div>
       </div>
@@ -578,21 +578,21 @@ WARNING at 06:01:00  health 71/100
 
     <div class="tbl">
       <table>
-        <thead><tr><th scope="col"><span class="sr">Question</span></th><th scope="col">Ember · software layer</th><th scope="col">Kintrace · physical layer</th></tr></thead>
+        <thead><tr><th scope="col"><span class="sr">Question</span></th><th scope="col">Ember · software layer</th><th scope="col">Respite Labs · physical layer</th></tr></thead>
         <tbody>
-          <tr><th scope="row">Built for</th><td data-h="Ember">Engineering teams who build robots</td><td data-h="Kintrace">Teams who run robots in production</td></tr>
-          <tr><th scope="row">Core question</th><td data-h="Ember">What changed in the software, and what failed?</td><td data-h="Kintrace">What changed in the robot itself, and what value puts it back?</td></tr>
-          <tr><th scope="row">Watches</th><td data-h="Ember">Releases, logs, telemetry, fleet status</td><td data-h="Kintrace">Camera vs arm, camera vs table marker, fingertip, command timing, controller settings</td></tr>
-          <tr><th scope="row">After a crash</th><td data-h="Ember">Shows the timeline, the release and the error</td><td data-h="Kintrace">Names the physical cause in mm, deg or ms, and the moment it changed</td></tr>
-          <tr><th scope="row">Touches the robot</th><td data-h="Ember">No. It observes.</td><td data-h="Kintrace">Yes. One 6.3 s check motion, then writes the fix and runs 6 test picks.</td></tr>
-          <tr><th scope="row">Ends with</th><td data-h="Ember">An engineer who knows where to look</td><td data-h="Kintrace">A GO or NO-GO record for the cell</td></tr>
+          <tr><th scope="row">Built for</th><td data-h="Ember">Engineering teams who build robots</td><td data-h="Respite Labs">Teams who run robots in production</td></tr>
+          <tr><th scope="row">Core question</th><td data-h="Ember">What changed in the software, and what failed?</td><td data-h="Respite Labs">What changed in the robot itself, and what value puts it back?</td></tr>
+          <tr><th scope="row">Watches</th><td data-h="Ember">Releases, logs, telemetry, fleet status</td><td data-h="Respite Labs">Camera vs arm, camera vs table marker, fingertip, command timing, controller settings</td></tr>
+          <tr><th scope="row">After a crash</th><td data-h="Ember">Shows the timeline, the release and the error</td><td data-h="Respite Labs">Names the physical cause in mm, deg or ms, and the moment it changed</td></tr>
+          <tr><th scope="row">Touches the robot</th><td data-h="Ember">No. It observes.</td><td data-h="Respite Labs">Yes. One 6.3 s check motion, then writes the fix and runs 6 test picks.</td></tr>
+          <tr><th scope="row">Ends with</th><td data-h="Ember">An engineer who knows where to look</td><td data-h="Respite Labs">A GO or NO-GO record for the cell</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="wedge">Ember tells you something changed. <span>Kintrace puts the robot back.</span></p>
-    <p class="lede">You can run both. Kintrace reads a simple log format today, and a ROS 2 / MCAP reader is next, so it can sit next to Ember or Foxglove as a plug-in.</p>
+    <p class="wedge">Ember tells you something changed. <span>Respite Labs puts the robot back.</span></p>
+    <p class="lede">You can run both. Respite Labs reads a simple log format today, and a ROS 2 / MCAP reader is next, so it can sit next to Ember or Foxglove as a plug-in.</p>
 
-    <div class="onlyh"><span>What only Kintrace does</span><span>built = runs in our simulator today</span></div>
+    <div class="onlyh"><span>What only Respite Labs does</span><span>built = runs in our simulator today</span></div>
     <div class="only">
       <div><span class="no">01</span><h3>Physical cause, with size</h3><p>Camera moved 21.2 mm. J3 zero off 2.911 deg. Commands 85 ms late. A named part and a number.</p><span class="st-tag built">built · sim</span></div>
       <div><span class="no">02</span><h3>When it changed</h3><p>Split from the robot's own log and matched to the logged stop, edit, service or update. Crash onset within 0.01 s, median.</p><span class="st-tag built">built · sim</span></div>
@@ -630,7 +630,7 @@ WARNING at 06:01:00  health 71/100
   <div class="wrap">
     <p class="label"><b>// 04</b> · System</p>
     <h2 id="sys-h">Find. Check. Fix. Certify.</h2>
-    <p class="lede">A healthy robot's sensors agree. The joints follow the commands after a fixed delay. The camera sees the wrist where the encoders say it is. A table marker stays where it was bolted. Each fault breaks a different agreement in a different shape. Kintrace fits the one explanation that brings the error back down to sensor noise. There is no AI model inside, so the same log always gives the same answer.</p>
+    <p class="lede">A healthy robot's sensors agree. The joints follow the commands after a fixed delay. The camera sees the wrist where the encoders say it is. A table marker stays where it was bolted. Each fault breaks a different agreement in a different shape. Respite Labs fits the one explanation that brings the error back down to sensor noise. There is no AI model inside, so the same log always gives the same answer.</p>
 
     <div class="steps">
       <div class="step">
@@ -703,7 +703,7 @@ picks 6/6 ...... GO</pre>
     </div>
     <dl class="limits">
       <dt>Stress</dt><dd>100% right cause down to 8 mm faults and at 3x camera noise.</dd>
-      <dt>Edge</dt><dd>At 5 mm a bent tool doesn't make picks fail, so Kintrace reads the cell as healthy.</dd>
+      <dt>Edge</dt><dd>At 5 mm a bent tool doesn't make picks fail, so Respite Labs reads the cell as healthy.</dd>
       <dt>Limits</dt><dd>We built the simulator and the baseline. Real sensors have biases and dropouts. No real-robot results yet. Next is the same faults, caused on purpose, on a real arm at CMU.</dd>
     </dl>
   </div>
@@ -713,7 +713,7 @@ picks 6/6 ...... GO</pre>
   <div class="wrap">
     <p class="label"><b>// 06</b> · Physical prototype</p>
     <h2 id="rig-h">We crash it on purpose. Live.</h2>
-    <p class="lede">A desk rig anyone can rebuild: an SO-101 arm, a webcam and printed AprilTags. We break it in front of you, and Kintrace says what we did.</p>
+    <p class="lede">A desk rig anyone can rebuild: an SO-101 arm, a webcam and printed AprilTags. We break it in front of you, and Respite Labs says what we did.</p>
     <div class="rig">
 <pre class="ascii" role="img" aria-label="Drawing of the desk rig: a webcam on a clamp looks at an SO-101 arm with a tag on its wrist, a tag on its pointer tip, and four tags taped to the desk.">
  (o) webcam on a clamp
@@ -759,10 +759,10 @@ picks 6/6 ...... GO</pre>
   <div class="wrap">
     <p class="label"><b>// 07</b> · Contact</p>
     <h2 id="ct-h">Send us a crash.</h2>
-    <p class="lede">We want to talk to robot fleets, robots-as-a-service teams and integrators who lose hours after crashes and changes. Send a log, or let us run Kintrace on one cell.</p>
+    <p class="lede">We want to talk to robot fleets, robots-as-a-service teams and integrators who lose hours after crashes and changes. Send a log, or let us run Respite Labs on one cell.</p>
     <div class="ctas">
-      <a class="btn" href="mailto:rithiksatarla@gmail.com?subject=Kintrace">Email us →</a>
-      <a class="btn ghost" href="https://github.com/RithikSatarla/kintrace">Code on GitHub</a>
+      <a class="btn" href="mailto:rithiksatarla@gmail.com?subject=Respite Labs">Email us →</a>
+      <a class="btn ghost" href="https://github.com/RithikSatarla/respitelabs">Code on GitHub</a>
     </div>
     <div class="mailbox"><span>email</span><span class="mail">rithiksatarla@gmail.com</span></div>
   </div>
@@ -771,7 +771,7 @@ picks 6/6 ...... GO</pre>
 </main>
 
 <footer>
-  <div class="wrap"><span>KINTRACE · 2026</span><span>Harvard Innovation Labs</span><span>All results are from simulation. Real-robot results coming.</span><span><a href="pitch/" style="color:inherit">Deck</a></span></div>
+  <div class="wrap"><span>RESPITE LABS · 2026</span><span>Harvard Innovation Labs</span><span>All results are from simulation. Real-robot results coming.</span><span><a href="pitch/" style="color:inherit">Deck</a></span></div>
 </footer>
 
 <script>

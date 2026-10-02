@@ -8,6 +8,8 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7", "cryptography>=
 [project.optional-dependencies]
 # the SO-101 desk rig (HARDWARE.md). The real arm also needs: pip install 'lerobot[feetech]'
 rig = ["opencv-contrib-python-headless>=4.8,<5"]  # OpenCV 5 changes the aruco API and breaks the rig fit
+# kintrace import: LeRobot datasets, ROS bags / MCAP, UR RTDE; kintrace.droid: DROID episodes
+readers = ["rosbags>=0.9", "pandas>=2.0", "pyarrow>=14", "h5py>=3.8", "opencv-contrib-python-headless>=4.8,<5"]
 
 [project.scripts]
 kintrace = "kintrace.cli:main"

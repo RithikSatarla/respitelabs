@@ -4,6 +4,8 @@
   kintrace baseline healthy.npz -o baseline.json        learn what normal looks like
   kintrace diagnose bad.npz -b baseline.json            name the cause, size and fix
   kintrace diagnose bad.npz -b baseline.json --probe    also use the 1.2 s probe
+  kintrace import <recording> --config rig.json -o log.npz   LeRobot / ROS bag / MCAP / UR RTDE -> log
+  kintrace check log.npz                                one log, no baseline needed
   kintrace incident                                      after a crash or change: check, fix, verify, certify
   kintrace bench                                        Kintrace vs a standard dashboard
   kintrace demo                                         run everything into ./demo
@@ -50,6 +52,62 @@ def _cmd_diagnose(a):
     if a.chart:
         chart(d, a.chart, name)
         print(f"\nchart: {a.chart}")
+    if a.json:
+        with open(a.json, "w", encoding="utf-8") as f:
+            f.write(d.to_json())
+        print(f"json : {a.json}")
+
+
+def _cmd_import(a):
+    """Someone else's recording -> a kintrace Log."""
+    from . import readers
+
+    fmt = a.format or readers.guess_format(a.path)
+    if fmt is None:
+        sys.exit("could not guess the format, pass --format lerobot|rosbag|mcap|ur_rtde")
+    kw = {}
+    if fmt == "lerobot":
+        kw = dict(episode=a.episode, units=a.units, camera=a.camera)
+    elif fmt in ("rosbag", "mcap"):
+        kw = dict(joint_topic=a.joint_topic, cmd_topic=a.cmd_topic, image_topic=a.image_topic)
+    elif fmt == "ur_rtde":
+        kw = dict(video=a.video)
+    cfg = None
+    if a.config:
+        with open(a.config, encoding="utf-8") as f:
+            cfg = json.load(f)
+    if fmt == "lerobot" and cfg and "joint_zero_offsets_deg" in cfg:
+        kw["rig_cfg"] = cfg
+    stream = readers.FORMATS[fmt](a.path, **kw)
+    print(stream.describe())
+    if cfg is None:
+        sys.exit("\nno --config: need arm, camera_extrinsic, markers and tcp_offset to build a Log (a rig.json works)")
+    if "camera_extrinsic" not in cfg and "known_good" in cfg:
+        cfg = dict(cfg, **{k: cfg["known_good"][k] for k in ("camera_extrinsic", "tcp_offset") if k in cfg["known_good"]})
+    if "markers" not in cfg and "tags" in cfg:
+        from .hw import rig
+        cfg["markers"] = rig.wrist_markers(cfg).tolist()
+    locate = None
+    if a.intrinsics and stream.frames is not None:
+        from .hw.markers import Intrinsics
+        tag = cfg.get("tags", {})
+        locate = readers.locate_tag(Intrinsics.load(a.intrinsics), int(a.tag_id if a.tag_id is not None else tag.get("wrist_id", 0)),
+                                    float(a.tag_size or tag.get("wrist_size", 0.04)))
+    log = readers.assemble(stream, cfg, locate=locate, every=a.every)
+    log.save(a.out)
+    n = int(log.visible.sum())
+    print(f"wrote {a.out}  (wrist located in {n}/{len(log.visible)} frames" + ("" if locate else ", no --intrinsics so no camera detections") + ")")
+
+
+def _cmd_check(a):
+    """Single-session check: no earlier healthy run needed."""
+    from .diagnose import self_baseline
+
+    log = Log.load(a.log)
+    d = diagnose(log, self_baseline(log, a.sigma_mm))
+    name = os.path.basename(a.log)
+    print(text_report(d, name))
+    print("\n(single-session mode: settings and timing are taken as given, the question is whether the sensors agree with them)")
     if a.json:
         with open(a.json, "w", encoding="utf-8") as f:
             f.write(d.to_json())
@@ -156,6 +214,30 @@ def main(argv=None):
     s.add_argument("--chart", help="write a PNG chart")
     s.add_argument("--json", help="write the result as JSON")
     s.set_defaults(fn=_cmd_diagnose)
+
+    s = sub.add_parser("import", help="turn a LeRobot dataset, ROS bag/MCAP or UR RTDE recording into a log")
+    s.add_argument("path")
+    s.add_argument("--format", choices=["lerobot", "rosbag", "mcap", "ur_rtde"])
+    s.add_argument("--config", help="rig.json or any json with arm, camera_extrinsic, markers, tcp_offset")
+    s.add_argument("--intrinsics", help="camera intrinsics json (from kintrace rig calibrate)")
+    s.add_argument("--tag-id", type=int, help="wrist AprilTag id (default from config)")
+    s.add_argument("--tag-size", type=float, help="wrist tag size in metres (default from config)")
+    s.add_argument("--every", type=int, default=1, help="use every Nth frame")
+    s.add_argument("--episode", type=int, default=0, help="lerobot: episode index")
+    s.add_argument("--units", choices=["deg", "rad"], default="deg", help="lerobot: joint units in the dataset")
+    s.add_argument("--camera", help="lerobot: observation.images.<name> to use")
+    s.add_argument("--joint-topic")
+    s.add_argument("--cmd-topic")
+    s.add_argument("--image-topic")
+    s.add_argument("--video", help="ur_rtde: camera video recorded alongside")
+    s.add_argument("-o", "--out", default="log.npz")
+    s.set_defaults(fn=_cmd_import)
+
+    s = sub.add_parser("check", help="check one log with no earlier baseline")
+    s.add_argument("log")
+    s.add_argument("--sigma-mm", type=float, default=4.0, help="expected wrist detection noise")
+    s.add_argument("--json")
+    s.set_defaults(fn=_cmd_check)
 
     s = sub.add_parser("bench", help="Kintrace vs a standard monitoring dashboard")
     s.add_argument("-n", type=int, default=20)

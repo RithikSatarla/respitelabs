@@ -1,17 +1,28 @@
-#Respitelabs
+# Respite Labs
 
-Physical observability for robot arms.
+**The check layer for robot arms.** Kintrace is the check: a few seconds a
+robot spends confirming its body is what its software thinks it is.
 
 Monitoring tools watch a robot's software. Kintrace watches its body: is the
 camera where the calibration says, is the tool the length the controller
 thinks, are the joint zeros still zero, do commands land on time. When one of
-those changes, Kintrace says what moved, by how much, and writes it back.
+those changes, Kintrace says what moved, by how much, and writes the fix.
 
 No AI model inside. It's geometry and statistics, so the same log always gives
 the same answer, and every answer can be checked.
 
-Everything below runs on a simulated UR5e-class pick cell. The desk rig in
-[HARDWARE.md](HARDWARE.md) is how it gets onto a real arm.
+Website: [respitelabs.net](https://www.respitelabs.net). Contact: contact@respitelabs.net
+
+## Where it stands
+
+| | Status |
+|---|---|
+| Simulated UR5e cell | 120/120 faults named and sized. See [Results](#results-simulation). |
+| Real Franka data (DROID) | Adapter built. Running now. See [DROID](#real-robot-data-droid-in-progress). |
+| Real arm (SO-101 desk rig) | Hardware on order. Nothing measured yet. |
+| Someone else's robot | Not yet. Send one recording and we'll run it: `kintrace import` + `kintrace check`. |
+
+Every number in this file says which row it comes from.
 
 ## Try it (2 minutes)
 
@@ -23,6 +34,28 @@ python -m kintrace incident                    # 4 incidents: find, check, fix, 
 python -m kintrace watch --sim camera_sag      # slow drift, warned before picks fail
 python -m kintrace bench -n 20                 # Kintrace vs a standard dashboard
 ```
+
+## Bring your own recording
+
+One session from your arm is enough: joint positions over time, the fixed
+camera's video, and the camera pose you're using. No earlier healthy run needed.
+
+```bash
+pip install rosbags pandas pyarrow h5py        # readers
+kintrace import my_dataset/ --config rig.json --intrinsics cam.json -o log.npz   # LeRobot dataset
+kintrace import session.mcap --config rig.json --intrinsics cam.json -o log.npz  # ROS 2 bag / MCAP / ROS 1 bag
+kintrace import rtde.csv --video cam.mp4 --config cell.json -o log.npz          # UR RTDE recording
+kintrace check log.npz                                                          # one log, no baseline
+```
+
+`import` reads the joints and commands from the recording and finds the
+wrist in each frame. Today that needs a printed AprilTag on the wrist (two
+minutes of tape; `kintrace rig tags` prints one). A markerless detector for
+the Franka hand is the next piece, see the DROID section. `check` runs in
+single-session mode: the settings the recording was made with count as
+"last known good", and the question is whether the sensors still agree with
+them. What a recording is missing (no commanded joints, no camera) is
+reported, and that check is skipped rather than guessed.
 
 ## After a crash or a change: `kintrace incident`
 
@@ -144,18 +177,78 @@ Stress test: still 100% with faults down to 8 mm and a camera 3x noisier.
 At 5 mm a bent tool doesn't make picks fail, so Kintrace reports the robot as fine.
 
 **Limits:** this is a simulation we built, and we built the baseline too. Real sensors have biases,
-dropouts and unmodeled effects. The next step is the same five faults, caused
-on purpose, on a real arm at CMU.
+dropouts and unmodeled effects. The two sections below are how we get past that.
+
+## Real robot data: DROID (in progress)
+
+[DROID](https://droid-dataset.github.io/) is 76k episodes on Franka Panda arms
+with fixed stereo cameras. Each episode records the camera extrinsics the cell
+was configured with. In 2025 the DROID team re-solved the extrinsics for ~36k
+episodes ([KarlP/droid](https://huggingface.co/datasets/KarlP/droid)) because
+cameras had moved during collection and nobody had re-calibrated. That is the
+fault the check exists for, on real robots, with ground truth: the configured
+pose is the belief, the corrected pose is the truth.
+
+`kintrace/droid/` is the adapter. Franka Panda kinematics are in `arms.py`.
+
+```
+python -m kintrace.droid download --out data/droid --episodes 50   # extrinsics JSONs + 50 raw episodes
+python -m kintrace.droid labels   --data data/droid                 # how far configured cameras were from the truth
+python -m kintrace.droid faults   --data data/droid                 # inject the other faults into real logs
+python -m kintrace.droid detect   --data data/droid --synthetic     # pipeline test with synthetic detections
+```
+
+What each fault can and cannot get from DROID:
+
+| Fault | On DROID | Needs |
+|---|---|---|
+| Camera moved | Real. Ground truth from the corrected extrinsics. | gripper detector |
+| Commands late | Injected: measured joint stream shifted against the commanded one. Real motion, real timing noise. | nothing, runs today |
+| Encoder zero drifted | Injected: a bias added to one joint's measured angle, sized by how far it moves the fingertip. Real motion, real images. | gripper detector |
+| Tool offset edited | Injected: config change. The check is a settings diff, so the data only has to stay quiet. | gripper detector |
+| Bent tool | Not possible. Nothing in DROID records the tool. Waits for the desk arm. | the SO-101 |
+
+Injected faults on real logs are how most fault-detection work gets evaluated, and
+they are labelled "injected" everywhere here. They are not the same as a camera
+someone actually bumped, which is why the camera row matters most.
+
+Two levels of result:
+
+1. **Labels (no vision).** How often, and by how much, DROID cameras sat away
+   from their configured pose. Real data, nothing of ours in the loop. Numbers
+   go here once we have run it on a few hundred episodes.
+2. **Detection.** Joints plus fixed-camera frames through `diagnose()` with the
+   configured extrinsic as the belief, scored against the label. DROID arms
+   have no wrist fiducial, so this needs one point on the gripper per frame:
+   `kintrace/droid/convert.py: detect_gripper()` is the function to fill
+   (Franka Hand keypoint model, or a mask plus ZED depth). It is not written
+   yet. `--synthetic` runs the same pipeline with detections made from the
+   corrected pose plus 3 mm noise, which tests everything except the detector.
+   On a 12-episode synthetic fixture: 10/10 moved cameras caught, 1 false
+   alarm on a camera 7.9 mm off (just under the 10 mm threshold, 21 frames).
+   Injected faults on the same fixture: latency 72/72 at 10 to 50 ms, tool
+   offset 33/33, encoder drift 17/22 at 10 and 20 mm of tip motion and 1/11
+   at 5 mm (under the 3 mm detector noise assumed). Pipeline tests, not results.
+
+## Real arm results
+
+None yet. An SO-101 desk arm is on order and `kintrace rig` is the capture and
+check path for it (`HARDWARE.md`). The plan is the same faults as the
+simulation, caused on purpose, on that arm, and this section gets the
+numbers as they come in, good or bad.
 
 ## Log format
 
 See `kintrace/logio.py`. Anything that can export commanded joints, measured
 joints, camera detections of a wrist marker, pick outcomes and the controller's
-tool/camera settings can be diagnosed. Next: a ROS 2 bag / MCAP adapter.
+tool/camera settings can be diagnosed. `kintrace/readers/` does this for
+LeRobot datasets, ROS 1/2 bags, MCAP and UR RTDE recordings.
 
 ## Files
 
-- `kintrace/robot.py`, `kintrace/arms.py` arm kinematics (UR5e-class, SO-101)
+- `kintrace/robot.py`, `kintrace/arms.py` arm kinematics (UR5e-class, SO-101, Franka Panda)
+- `kintrace/readers/` LeRobot, ROS bag / MCAP, UR RTDE -> kintrace log
+- `kintrace/droid/` DROID adapter: download, labels, injected faults, detection run
 - `kintrace/sim.py` simulated pick cell with fault injection
 - `kintrace/diagnose.py` the checks and the explanation fitting
 - `kintrace/recommission.py` find, check, fix, certify
@@ -166,5 +259,6 @@ tool/camera settings can be diagnosed. Next: a ROS 2 bag / MCAP adapter.
 - `kintrace/bench.py`, `bench_incident.py` benchmarks
 - `incidents/` the four example incidents, logs and records
 - `bench_out/` benchmark results
-- `docs/` the website (GitHub Pages) and the interactive demo
-- `tests/` run with `python -m pytest tests`
+- `docs/` the GitHub Pages site and the interactive demo
+- `pitch/` the deck and its sources
+- `tests/` run with `python -m pytest tests` (also run on every push, see Actions)

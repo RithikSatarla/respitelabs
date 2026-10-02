@@ -92,6 +92,31 @@ def learn_baseline(log: Log) -> dict:
     )
 
 
+def self_baseline(log: Log, sigma_mm: float = 4.0) -> dict:
+    """A baseline for a single session with no earlier healthy run.
+
+    The settings the log was recorded with count as "last known good", so the
+    settings check cannot fire; what remains is whether the sensors agree
+    with those settings. Timing is measured from the log itself, so the
+    latency check cannot fire either. Camera noise is given, not learned,
+    since learning it against the belief under test would hide the fault.
+    """
+    cfg = log.config
+    has_cmd = cfg.get("has_commands", True)
+    return dict(
+        tau=estimate_delay(log) if has_cmd else 0.0,
+        sigma_cam=[sigma_mm / 1000] * 3,
+        tcp_offset=cfg["tcp_offset"],
+        camera_extrinsic=cfg["camera_extrinsic"],
+        pick_success=None,
+        n_picks=0,
+        single_session=True,
+    )
+
+
+MIN_FRAMES = 12  # fewer located frames than this and the camera checks are skipped
+
+
 # --------------------------------------------------------------------------
 # result
 # --------------------------------------------------------------------------
@@ -337,11 +362,15 @@ def diagnose(log: Log, baseline: dict, run_probe: bool = False) -> Diagnosis:
     probe_used = False
 
     # 1. command timing ---------------------------------------------------
-    tau = estimate_delay(log)
+    has_cmd = cfg.get("has_commands", True)
+    tau = estimate_delay(log) if has_cmd else baseline["tau"]
     d_tau = tau - baseline["tau"]
     tau_tol = 0.004
-    checks.append(Check("Command timing", abs(d_tau) < tau_tol, abs(d_tau) / tau_tol,
-                        f"{tau*1000:.0f} ms delay vs {baseline['tau']*1000:.0f} ms normal"))
+    if has_cmd:
+        checks.append(Check("Command timing", abs(d_tau) < tau_tol, abs(d_tau) / tau_tol,
+                            f"{tau*1000:.0f} ms delay vs {baseline['tau']*1000:.0f} ms normal"))
+    else:
+        checks.append(Check("Command timing", True, 0.0, "skipped: recording has no commanded joints"))
     # a real snippet of the log for the chart: the fastest move of the busiest joint
     vel = np.abs(np.gradient(log.q_cmd, axis=0))
     j = int(np.argmax(vel.max(0)))
@@ -376,11 +405,17 @@ def diagnose(log: Log, baseline: dict, run_probe: bool = False) -> Diagnosis:
         ))
 
     # 3. camera vs the cell, and camera vs joint encoders ----------------
-    q, obs = _marker_data(log, log.markers_cam, log.t_cam, log.visible, log.t_joint, log.q_meas)
-    fixed = log.fixed_cam[log.visible] if log.fixed_cam is not None else None
-    g_checks, g_findings, hyps, geo = explain_geometry(q, obs, fixed, cfg, sigma)
-    checks += g_checks
-    findings += g_findings
+    n_vis = int(log.visible.sum())
+    if n_vis >= MIN_FRAMES:
+        q, obs = _marker_data(log, log.markers_cam, log.t_cam, log.visible, log.t_joint, log.q_meas)
+        fixed = log.fixed_cam[log.visible] if log.fixed_cam is not None else None
+        g_checks, g_findings, hyps, geo = explain_geometry(q, obs, fixed, cfg, sigma)
+        checks += g_checks
+        findings += g_findings
+    else:
+        checks.append(Check("Camera vs joint encoders", True, 0.0,
+                            f"skipped: wrist located in {n_vis} frames, need {MIN_FRAMES}"))
+        hyps = {}
     plot["hypotheses"] = hyps
 
     # 4. task outcome -----------------------------------------------------

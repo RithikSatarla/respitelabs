@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kintrace Demo</title>
-<meta name="description" content="Four real incidents from a simulated robot cell. See how Kintrace finds when and what changed, writes the fix and certifies the cell GO or NO-GO.">
+<title>Respite Labs Demo</title>
+<meta name="description" content="Four real incidents from a simulated robot cell. See how Respite Labs finds when and what changed, writes the fix and certifies the cell GO or NO-GO.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
 :root{
@@ -141,12 +141,12 @@ footer{padding:26px 0 36px;font-size:13.5px;color:var(--muted)}
 <style>.kt-back{display:inline-block;margin:16px 0 0;padding:6px 2px;font:600 14px/1.2 var(--body);color:var(--ink);text-decoration:none;border-bottom:1.5px solid var(--accent)}.kt-back:hover{color:var(--accent-text)}.kt-back:focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
 </head>
 <body>
-<nav class="wrap" aria-label="Back"><a class="kt-back" href="../">← Kintrace</a></nav>
+<nav class="wrap" aria-label="Back"><a class="kt-back" href="../">← Respite Labs</a></nav>
 <header class="top wrap">
-  <div class="brand"><span class="mark" aria-hidden="true"></span>Kintrace</div>
+  <div class="brand"><span class="mark" aria-hidden="true"></span>Respite Labs</div>
   <h1>After any crash or change: check, fix and certify the cell in minutes, without a truck roll.</h1>
   <p class="lede"><strong>Four real incidents from our simulated robot cell. Pick one.</strong> Each record below is the actual output of our prototype, start to finish.</p>
-  <p class="contrast">Monitoring tools tell you something is off. Kintrace tells you what changed and by how much, writes the fix to the controller, proves it worked and signs off the restart.</p>
+  <p class="contrast">Monitoring tools tell you something is off. Respite Labs tells you what changed and by how much, writes the fix to the controller, proves it worked and signs off the restart.</p>
 </header>
 
 <main class="wrap">
@@ -267,7 +267,7 @@ function render(){
       <div id="chart"></div>
       <div class="tip" id="tip" role="presentation"></div>
     </div>
-    ${current==="tcp_edit" ? `<p class="note">The sensors still agree here: the arm goes exactly where the controller says, just with the wrong tool offset. Kintrace catches it from the logged setting change and the missed picks.</p>` : ""}
+    ${current==="tcp_edit" ? `<p class="note">The sensors still agree here: the arm goes exactly where the controller says, just with the wrong tool offset. Respite Labs catches it from the logged setting change and the missed picks.</p>` : ""}
     ${current==="software_update" ? `<p class="note">Apart from one spike at the update, camera and arm still agree, so the geometry is fine. The log caught the change in command timing, and the check motion confirms it: 93 ms instead of 8 ms.</p>` : ""}
   </div></section>`;
 
@@ -311,9 +311,9 @@ function render(){
     </div>
   </section>
   <details class="how"><summary>How we tested this</summary><div>
-    We injected a known fault into the simulated cell, then let Kintrace work from the logs and the check motion without being told what it was.
+    We injected a known fault into the simulated cell, then let Respite Labs work from the logs and the check motion without being told what it was.
     <ul>${truth.map(t => `<li>Injected fault: ${esc(t)}</li>`).join("")}
-    <li>Injected at ${d.truth_onset_s.toFixed(1)} s into the log; Kintrace placed the change at ${d.onset_s.toFixed(1)} s (${esc(d.changed_at)})</li></ul>
+    <li>Injected at ${d.truth_onset_s.toFixed(1)} s into the log; Respite Labs placed the change at ${d.onset_s.toFixed(1)} s (${esc(d.changed_at)})</li></ul>
   </div></details>`;
 
   document.getElementById("flow").innerHTML = html;

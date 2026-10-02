@@ -12,3 +12,6 @@ keys/
 .venv/
 incidents_check/
 .gstack/
+
+# downloaded datasets and their results
+data/

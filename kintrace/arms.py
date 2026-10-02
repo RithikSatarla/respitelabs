@@ -10,6 +10,9 @@ Which arm a log uses comes from its config: config["arm"] ("ur5e" or
   ur5e   UR5e-class 6-joint arm, standard DH (see robot.py). The simulated cell.
   so101  LeRobot SO-101 follower, 5 arm joints (the gripper joint is not part
          of the chain; the tool is clipped to the fixed jaw).
+  panda  Franka Emika Panda / FR3, 7 joints. The arm every DROID episode was
+         recorded on (see kintrace/droid). Modified DH from Franka's
+         published kinematics; flange is the panda_link8 frame.
 
 SO-101 source: joint origins and axes copied from so101_new_calib.urdf in
 github.com/TheRobotStudio/SO-ARM100, file Simulation/SO101/so101_new_calib.urdf
@@ -123,7 +126,59 @@ SO101 = Arm(
     work_pts=np.array([[0.20, 0.0, 0.0], [0.15, -0.10, 0.0], [0.15, 0.10, 0.0]]),
 )
 
-ARMS = {"ur5e": UR5E, "so101": SO101}
+# --------------------------------------------------------------------------
+# Franka Panda / FR3, modified (Craig) DH from Franka's control interface docs
+# --------------------------------------------------------------------------
+PANDA_A = np.array([0.0, 0.0, 0.0, 0.0825, -0.0825, 0.0, 0.088, 0.0])
+PANDA_D = np.array([0.333, 0.0, 0.316, 0.0, 0.384, 0.0, 0.0, 0.107])
+PANDA_ALPHA = np.array([0.0, -np.pi / 2, np.pi / 2, np.pi / 2, -np.pi / 2, np.pi / 2, np.pi / 2, 0.0])
+PANDA_HOME_Q = np.array([0.0, -np.pi / 4, 0.0, -3 * np.pi / 4, 0.0, np.pi / 2, np.pi / 4])
+# panda_link8 -> fingertip centre of the stock Franka Hand with fingers closed
+PANDA_HAND_TIP = np.array([0.0, 0.0, 0.1034])
+
+
+def panda_fk(q: np.ndarray) -> np.ndarray:
+    """Flange (panda_link8) pose(s) in the panda_link0 frame.
+
+    q: (7,) or (N, 7) joint angles in radians. Returns (4, 4) or (N, 4, 4).
+    Modified DH: T_i = Rx(alpha_i) Tx(a_i) Rz(theta_i) Tz(d_i), plus a fixed
+    flange transform (a=0, d=0.107, theta=0).
+    """
+    q = np.asarray(q, dtype=float)
+    single = q.ndim == 1
+    q = np.atleast_2d(q)
+    n = q.shape[0]
+    theta = np.c_[q, np.zeros(n)]
+    T = np.tile(np.eye(4), (n, 1, 1))
+    for i in range(8):
+        ct, st = np.cos(theta[:, i]), np.sin(theta[:, i])
+        ca, sa = np.cos(PANDA_ALPHA[i]), np.sin(PANDA_ALPHA[i])
+        A = np.zeros((n, 4, 4))
+        A[:, 0, 0] = ct
+        A[:, 0, 1] = -st
+        A[:, 0, 3] = PANDA_A[i]
+        A[:, 1, 0] = st * ca
+        A[:, 1, 1] = ct * ca
+        A[:, 1, 2] = -sa
+        A[:, 1, 3] = -sa * PANDA_D[i]
+        A[:, 2, 0] = st * sa
+        A[:, 2, 1] = ct * sa
+        A[:, 2, 2] = ca
+        A[:, 2, 3] = ca * PANDA_D[i]
+        A[:, 3, 3] = 1.0
+        T = T @ A
+    return T[0] if single else T
+
+
+PANDA = Arm(
+    name="panda",
+    joint_names=("J1", "J2", "J3", "J4", "J5", "J6", "J7"),
+    fk_fn=panda_fk,
+    home_q=PANDA_HOME_Q.copy(),
+    work_pts=np.array([[0.5, 0.0, 0.05], [0.4, -0.3, 0.05], [0.4, 0.3, 0.05]]),
+)
+
+ARMS = {"ur5e": UR5E, "so101": SO101, "panda": PANDA}
 
 
 def get(name: str) -> Arm:
