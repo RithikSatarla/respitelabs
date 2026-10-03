@@ -9,10 +9,10 @@ wrote data/droid\survey.json
 
 $ python -m kintrace.droid labels --data data/droid
 DROID camera labels: 50 fixed cameras over 50 episodes
-  configured pose off by > 10 mm or > 1 deg:  14%
+  by source: GT 43, Pred 7
+  all entries (GT are identical by construction), off by > 10 mm or > 1 deg:  14%
   translation error  median 0.0 mm   p90 44.0 mm   max 87.0 mm
   rotation error     median 0.00 deg  p90 4.19 deg  max 23.66 deg
-  by source: GT 43, Pred 7
   Pred only (7 cameras), off by > 10 mm or > 1 deg:  100%
     translation error  median 60.3 mm   p90 77.8 mm   max 87.0 mm
     rotation error     median 5.77 deg  p90 19.40 deg  max 23.66 deg
@@ -21,7 +21,7 @@ wrote data/droid\labels.json
 [exit 0]
 
 $ python -m kintrace.droid faults --data data/droid
-DROID injected faults: real frames where vision was needed
+DROID injected faults: latency on real joint streams; vision checks need a gripper detector
   latency       145/150 named and sized, size error median 4.40 ms   (real joint streams, delay injected)
                 10 ms: 48/50   20 ms: 48/50   50 ms: 49/50
   encoder_bias  not run (needs a located gripper)
@@ -41,6 +41,6 @@ wrote data/droid\detect_synthetic.json
 
 $ python -m pytest tests -q
 .................................sssss........                           [100%]
-41 passed, 5 skipped in 101.00s (0:01:41)
+41 passed, 5 skipped in 113.56s (0:01:53)
 [exit 0]
 
