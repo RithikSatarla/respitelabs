@@ -94,8 +94,13 @@ def fetch_episode(episode_path: str, out: str, video: bool = False, fixed_serial
     return dest_dir
 
 
-def choose_episodes(out: str, n: int, lab: str | None = None, seed: int = 0) -> list:
-    """Episode paths that have corrected extrinsics, so every one is labelled."""
+def choose_episodes(out: str, n: int, lab: str | None = None, seed: int = 0,
+                    source: str = "any", exclude=()) -> list:
+    """Episode paths that have corrected extrinsics, so every one is labelled.
+
+    source: "GT", "Pred" or "any", matched against the entry's source field.
+    exclude: keys already downloaded; they are not chosen again.
+    """
     with open(os.path.join(out, "cam2base_extrinsics.json"), encoding="utf-8") as f:
         corrected = json.load(f)
     id_to_path = {}
@@ -104,7 +109,12 @@ def choose_episodes(out: str, n: int, lab: str | None = None, seed: int = 0) -> 
         with open(p, encoding="utf-8") as f:
             id_to_path = json.load(f)
     paths = []
-    for key in corrected:
+    exclude = set(exclude)
+    for key, entry in corrected.items():
+        if key in exclude:
+            continue
+        if source != "any" and (entry.get("source") if isinstance(entry, dict) else None) != source:
+            continue
         path = id_to_path.get(key, key)
         if lab and lab.lower() not in path.lower():
             continue
@@ -122,22 +132,47 @@ def main(argv=None):
     ap.add_argument("--lab", default=None, help="only episodes whose path contains this (e.g. AUTOLab, ILIAD)")
     ap.add_argument("--video", action="store_true", help="also download the fixed-camera MP4s")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--source", choices=("GT", "Pred", "any"), default="any",
+                    help="only entries DROID kept (GT) or re-solved (Pred)")
     a = ap.parse_args(argv)
 
     fetch_extrinsics(a.out)
-    chosen = choose_episodes(a.out, a.episodes, a.lab, a.seed)
-    print(f"{len(chosen)} episodes with corrected extrinsics selected", file=sys.stderr)
+    # append to an existing manifest; never re-download what is already there
+    mpath = os.path.join(a.out, "manifest.json")
     manifest = []
+    if os.path.exists(mpath):
+        with open(mpath, encoding="utf-8") as f:
+            manifest = json.load(f)
+    have = {m["key"] for m in manifest}
+    chosen = choose_episodes(a.out, a.episodes, a.lab, a.seed, a.source, exclude=have)
+    print(f"{len(chosen)} new episodes with corrected extrinsics selected ({a.source}), {len(manifest)} already in the manifest", file=sys.stderr)
     for i, (key, path) in enumerate(chosen, 1):
         print(f"[{i}/{len(chosen)}] {path}", file=sys.stderr)
         try:
-            d = fetch_episode(path, a.out, video=a.video)
+            d = fetch_episode(path, a.out)
             manifest.append({"key": key, "path": path, "dir": d})
         except Exception as e:  # keep going, report at the end
             print(f"  skipped: {e}", file=sys.stderr)
-    with open(os.path.join(a.out, "manifest.json"), "w", encoding="utf-8") as f:
+    with open(mpath, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
-    print(f"wrote {os.path.join(a.out, 'manifest.json')} ({len(manifest)} episodes)")
+    if a.video:
+        # fixed cameras only, for every episode in the manifest; files already on disk are skipped
+        for i, m in enumerate(manifest, 1):
+            print(f"[video {i}/{len(manifest)}] {m['path']}", file=sys.stderr)
+            try:
+                fetch_episode(m["path"], a.out, video=True, fixed_serials=_fixed_serials(m["dir"]))
+            except Exception as e:
+                print(f"  video skipped: {e}", file=sys.stderr)
+    print(f"wrote {mpath} ({len(manifest)} episodes)")
+
+
+def _fixed_serials(episode_dir: str) -> tuple:
+    import glob
+    for p in glob.glob(os.path.join(episode_dir, "metadata_*.json")):
+        with open(p, encoding="utf-8") as f:
+            meta = json.load(f)
+        return tuple(str(meta[k]) for k in ("ext1_cam_serial", "ext2_cam_serial") if k in meta)
+    return ()
 
 
 if __name__ == "__main__":

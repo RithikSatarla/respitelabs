@@ -331,6 +331,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="python -m kintrace.droid", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("download", add_help=False)
+    sub.add_parser("fklabels", add_help=False)
     p = sub.add_parser("survey")
     p.add_argument("--data", default="data/droid")
     p = sub.add_parser("labels")
@@ -351,6 +352,9 @@ def main(argv=None):
         argv = sys.argv[1:]
     if argv and argv[0] == "download":
         return download.main(argv[1:])
+    if argv and argv[0] == "fklabels":
+        from . import labels_fk
+        return labels_fk.main(argv[1:])
     a = ap.parse_args(argv)
     if a.cmd == "survey":
         run_survey(a.data)
