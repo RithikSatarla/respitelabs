@@ -185,7 +185,7 @@ dropouts and unmodeled effects. The two sections below are how we get past that.
 with fixed stereo cameras. Each episode records the camera extrinsics the cell
 was configured with. In 2025 the DROID team re-solved the extrinsics for ~36k
 episodes ([KarlP/droid](https://huggingface.co/KarlP/droid)) because
-cameras had moved during collection and nobody had re-calibrated. That is the
+the stored calibration could not be trusted for those episodes. That is the
 fault the check exists for, on real robots, with ground truth: the configured
 pose is the belief, the corrected pose is the truth.
 

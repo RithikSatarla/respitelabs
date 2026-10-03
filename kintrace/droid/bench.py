@@ -109,10 +109,10 @@ def run_labels(data: str) -> dict:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)
     print(f"DROID camera labels: {summary['cameras']} fixed cameras over {summary['episodes']} episodes")
-    print(f"  configured pose off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg:  {100*summary['fraction_moved']:.0f}%")
+    print(f"  by source: GT {summary['by_source']['GT']}, Pred {summary['by_source']['Pred']}")
+    print(f"  all entries (GT are identical by construction), off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg:  {100*summary['fraction_moved']:.0f}%")
     print(f"  translation error  median {summary['translation_mm']['median']:.1f} mm   p90 {summary['translation_mm']['p90']:.1f} mm   max {summary['translation_mm']['max']:.1f} mm")
     print(f"  rotation error     median {summary['rotation_deg']['median']:.2f} deg  p90 {summary['rotation_deg']['p90']:.2f} deg  max {summary['rotation_deg']['max']:.2f} deg")
-    print(f"  by source: GT {summary['by_source']['GT']}, Pred {summary['by_source']['Pred']}")
     if pred:
         po = summary["pred_only"]
         print(f"  Pred only ({po['cameras']} cameras), off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg:  {100*po['fraction_moved']:.0f}%")
@@ -224,6 +224,7 @@ def _shift_measured(log, delay_s: float):
 def run_faults(data: str, synthetic: bool = False, every: int = 1, sigma_mm: float = 4.0, seed: int = 0) -> dict:
     rng = np.random.default_rng(seed)
     rows = []
+    any_located = False  # did any episode get a gripper located in its frames
     delays_ms = (10.0, 20.0, 50.0)
     tip_mm = (5.0, 10.0, 20.0)
     tcp_mm = (3.0, 6.0, 12.0)
@@ -239,6 +240,7 @@ def run_faults(data: str, synthetic: bool = False, every: int = 1, sigma_mm: flo
                 from .convert import to_log
                 plain = to_log(ep, serial, l["belief"], np.zeros((len(ep.t), 1, 3)), np.zeros(len(ep.t), bool))
                 have_vision = False
+            any_located = any_located or (have_vision and bool(plain.visible.any()))
             tau0 = estimate_delay(plain, plain.config.get("delay_search_s", 0.2))
             for d in delays_ms:
                 tau1 = estimate_delay(_shift_measured(plain, d / 1000), plain.config.get("delay_search_s", 0.2))
@@ -284,7 +286,13 @@ def run_faults(data: str, synthetic: bool = False, every: int = 1, sigma_mm: flo
                                  vision=True, note="config edit; the check is a settings diff, data only has to stay quiet"))
     if not rows:
         raise SystemExit("nothing scored")
-    summary = {"mode": "synthetic detections (pipeline test, not a real-image result)" if synthetic else "real frames where vision was needed",
+    if synthetic:
+        mode = "synthetic detections (pipeline test, not a real-image result)"
+    elif any_located:
+        mode = "real frames where vision was needed"
+    else:
+        mode = "latency on real joint streams; vision checks need a gripper detector"
+    summary = {"mode": mode,
                "not_possible": {"tool_bent": "DROID records nothing about the tool; waits for the desk arm"}}
     print("DROID injected faults:", summary["mode"])
     for fault in ("latency", "encoder_bias", "tcp_config"):
