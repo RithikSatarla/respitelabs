@@ -44,3 +44,286 @@ $ python -m pytest tests -q
 41 passed, 5 skipped in 113.56s (0:01:53)
 [exit 0]
 
+
+=== 2026-10-03 Markerless gripper detector on real DROID frames ===
+DROID (real Franka dataset). Held out by camera serial: 8 serials, 120 GT episodes. 317 GT episodes come from 26 physical cameras, not 317.
+Model: ResNet-18, ImageNet weights, early layers frozen, batch 16. Trained 50 of a planned 60 epochs; stopped on GPU heat (86 C), loss flat (3.679 -> 3.676).
+
+$ python -m kintrace.droid.eval_detector --ckpt data/droid/detector_resnet18_pretrained_frozen_ckpt.pt --out data/droid/eval_epoch45.json
+(the checkpoint file held epoch 45 at the time; it was copied to detector_resnet18_pretrained_frozen_epoch45.pt before training resumed)
+  [heat] before evaluation (idle): GPU 62 C
+  [heat] evaluation: GPU 83 C
+  [heat] above 75 C: waiting 180 s, need below 70 C
+  [heat] evaluation (waiting): GPU 50 C
+  [heat] after evaluation: GPU 68 C
+held-out DROID GT cameras: 120 cameras, 8 serials, 30949 frames scored, 1098 skipped (tip out of view)
+  full-res error: median 19.7 px  mean 67.5  p90 219.4  p95 324.6
+  within 5 / 12 / 25 px: 8.5% / 30.9% / 59.4%
+  per serial (median px, frames): 20103212 17.4 (2903), 20252535 17.0 (12127), 21582473 7.4 (1636), 22246076 20.8 (1261), 23897859 26.1 (6254), 24400334 20.3 (3314), 25947356 20.4 (1693), 29838012 38.1 (1761)
+  temperatures: before evaluation (idle) 62 C, evaluation 83 C, evaluation (waiting) 50 C, after evaluation 68 C
+wrote data/droid/eval_epoch45.json and data/droid/eval_epoch45_preds.npz
+
+$ python -m kintrace.droid.eval_detector --ckpt data/droid/detector_resnet18_pretrained_frozen.pt --out data/droid/eval_epoch50.json --pause 0.05
+  [heat] before evaluation (idle): GPU 57 C
+  [heat] inference: GPU 63 C
+  [heat] inference: GPU 64 C
+  [heat] inference: GPU 66 C
+  [heat] inference: GPU 66 C
+  [heat] after evaluation: GPU 66 C
+held-out DROID GT cameras: 120 cameras, 8 serials, 30949 frames scored, 1098 skipped (tip out of view)
+  full-res error: median 19.9 px  mean 70.4  p90 232.4  p95 347.4
+  within 5 / 12 / 25 px: 8.3% / 30.2% / 58.9%
+  per serial (median px, frames): 20103212 17.6 (2903), 20252535 17.5 (12127), 21582473 7.3 (1636), 22246076 22.0 (1261), 23897859 26.6 (6254), 24400334 20.1 (3314), 25947356 20.6 (1693), 29838012 40.1 (1761)
+  temperatures: before evaluation (idle) 57 C, inference 63 C, inference 64 C, inference 66 C, inference 66 C, after evaluation 66 C
+wrote data/droid/eval_epoch50.json and data/droid/eval_epoch50_preds.npz
+
+$ python -m pytest tests/test_detector_droid.py -q
+1 passed in 7.23s
+
+$ python -m kintrace.droid.study confidence --preds data/droid/eval_epoch50_preds.npz
+confidence study (data/droid/eval_epoch50_preds.npz): 30949 in-view frames, 1098 out of view
+  no threshold reaches a kept median of 12 px; using the lowest kept median instead
+  peak >= 0.0657 and visibility >= 0.5: keeps 55.7% of in-view frames, kept median 13.9 px, p90 76.6 px
+  out-of-view frames that still pass: 250 of 1098
+
+Big misses (>100 px): 6100 of 30949 in-view frames (19.7%); 1516 of them pass the confidence filter.
+Sample of 24 big misses, one per camera, judged by eye (data/droid/figures/big_miss_sample_*.png):
+  real miss (gripper visible at the label) 14, hidden (label in view, gripper not visible) 5, label off 2, unclear 3
+
+$ python -m kintrace.droid.study drift --preds data/droid/eval_epoch50_preds.npz --threshold 0.0657
+drift study (data/droid/eval_epoch50_preds.npz): 120 held-out GT cameras with >= 5 confident frames, 20 random directions per size
+  healthy per-frame residual (confident frames, 17399): median 14.1 px, p90 89.1, p99 580.4; over 50 px 13.4%, over 100 px 9.5%
+  healthy episode median residual: median 15.4 px, alarm threshold (99th pct) 330.8 px
+  moved 0.5 cm: median residual 15.4 px, caught 2%, frames needed for 90%: None
+  moved 1.0 cm: median residual 16.7 px, caught 2%, frames needed for 90%: None
+  moved 2.0 cm: median residual 20.7 px, caught 2%, frames needed for 90%: None
+  moved 5.0 cm: median residual 40.3 px, caught 2%, frames needed for 90%: None
+  turned 0.5 deg: median residual 15.6 px, caught 1%, frames needed for 90%: None
+  turned 1.0 deg: median residual 17.2 px, caught 2%, frames needed for 90%: None
+  turned 2.0 deg: median residual 22.6 px, caught 2%, frames needed for 90%: None
+  turned 5.0 deg: median residual 46.7 px, caught 2%, frames needed for 90%: None
+  smallest drift caught in >= 90% of episodes: None cm, None deg
+  per camera, against its own first-half baseline (120 cameras): healthy rise median 0.4 px, alarm at 394.9 px
+    moved 0.5 cm: median rise 0.7 px, caught 2%
+    moved 1.0 cm: median rise 2.1 px, caught 2%
+    moved 2.0 cm: median rise 6.6 px, caught 1%
+    moved 5.0 cm: median rise 23.7 px, caught 1%
+    turned 0.5 deg: median rise 0.9 px, caught 2%
+    turned 1.0 deg: median rise 2.5 px, caught 2%
+    turned 2.0 deg: median rise 7.7 px, caught 1%
+    turned 5.0 deg: median rise 30.3 px, caught 1%
+    smallest drift caught in >= 90%: None cm, None deg
+Healthy episode medians, 120 cameras: p50 15.4 p75 22.2 p90 38.5 p95 152.2 p99 330.8 px. 8 cameras above 100 px.
+
+=== 2026-10-03 Detector tuning, camera drift and other robots (session 14:37 to 16:58) ===
+DROID (real Franka dataset). Split by camera serial. Test = 8 serials, 120 GT cameras (unchanged). Validation = 3 serials, 25 cameras. Train = 15 serials (+4 new serials for the final run).
+
+--- Ladder (validation, 6 epochs, every 3rd frame) ---
+E0_baseline: val median 19.4 px, p90 188.2, within 5/12/25 px 6.8/28.5/60.6% kept
+E1_stride2: val median 20.4 px, p90 232.4, within 5/12/25 px 6.7/25.7/58.7% not kept
+E2_strong_aug: val median 19.9 px, p90 133.9, within 5/12/25 px 5.9/25.7/62.7% kept
+E3_unfreeze: val median 19.1 px, p90 172.4, within 5/12/25 px 5.5/26.9/64.0% kept
+E4_label_rule: val median 21.5 px, p90 126.5, within 5/12/25 px 3.3/20.0/57.8% not kept
+--- Finalists (validation; 19 training serials, every 2nd frame, 12 epochs) ---
+F_E3_unfreeze: val median 19.3 px, p90 164.4, within 12 px 26.4%
+F_E2_strong_aug: val median 18.3 px, p90 173.3, within 12 px 30.7%
+Final model chosen on validation: F_E2_strong_aug -> data/droid/detector_final.pt
+--- Test, scored once per finalist (original labels; visible-only second) ---
+F_E2_strong_aug: median 21.8 px, mean 66.2, p90 220.4, p95 322.8, within 5/12/25 6.8/27.2/55.4%; visible-only median 21.1, p90 198.1
+   per serial: 20103212 19.1, 20252535 20.6, 21582473 10.0, 22246076 27.2, 23897859 29.2, 24400334 20.9, 25947356 21.9, 29838012 36.5
+F_E3_unfreeze: median 21.5 px, mean 62.6, p90 194.8, p95 310.5, within 5/12/25 5.8/25.4/55.8%; visible-only median 21.0, p90 171.8
+   per serial: 20103212 19.1, 20252535 21.3, 21582473 9.3, 22246076 23.6, 23897859 27.4, 24400334 21.2, 25947356 21.1, 29838012 34.7
+Reference: epoch 50 test median 19.9 px, p90 232.4 (above).
+
+--- Offset study (validation, CPU) ---
+intrinsics: per episode and serial, 1280x720 calibrated, MP4 1280x720, order fx cx fy cy: correct
+gripper-frame offset direction consistency 0.21; shared tip correction (split by camera) 24.7 -> 24.8 px
+6-DoF refit first half -> second half: median 16.7 -> 22.6 px, offset 10.8 -> 14.7 px, refit size 95 mm
+best video-to-joints shift: median 30 ms (p10 -19, p90 95); median error 17.4 -> 17.0 px
+gripper pose: within-episode Spearman opening 0.18, angle 0.05; median error open 18.8 px, closed 15.0 px
+
+--- Phase 2 (final detector, cached once; thresholds from validation) ---
+===== phase2.json: min_peak 0.0688, min_visible 0.5
+test frames kept 2261/30949 (7.3%), kept median 14.1 px, p90 60.6
+within session: alarm 221.4 px (19 val cams), 67 test cams, healthy FA 1.5%, healthy rise median -0.8
+   trans_0.5 +-0.6px/1%  trans_1.0 +0.8px/1%  trans_2.0 +5.1px/1%  trans_5.0 +22.0px/1%  rot_0.5 +-0.2px/1%  rot_1.0 +1.7px/1%  rot_2.0 +6.7px/1%  rot_5.0 +29.8px/1%
+   frames   5: alarm 96.2, 67 cams, FA 1.5%, caught 5cm 3% 5deg 3% 2cm 2%
+   frames  10: alarm 111.9, 39 cams, FA 0.0%, caught 5cm 2% 5deg 1% 2cm 0%
+   frames  20: alarm 119.9, 19 cams, FA 5.3%, caught 5cm 7% 5deg 5% 2cm 5%
+between sessions: 20 val / 64 test pairs, alarm 191.7, noise floor p50/p90/p99 7.8/45.4/177.8, healthy FA 0.0%
+   trans_0.5 +-1.9px/0%  trans_1.0 +-0.7px/0%  trans_2.0 +3.6px/1%  trans_5.0 +21.1px/0%  rot_0.5 +-1.8px/0%  rot_1.0 +-0.2px/0%  rot_2.0 +5.1px/1%  rot_5.0 +28.3px/1%
+real drift: Pred caught 6/45 (recall 13%), test GT FA 0/63, precision 1.00, not scored 70; Pred serials seen in training: 13 (2 of the caught, 25 of the moved)
+   fix (translation only, weakly constrained) vs DROID: median 269 mm; DROID's own correction median 313 mm
+fix + held-out re-check: 6/6 pass
+encoder injected: 10.0 mm flagged 0/63, 20.0 mm flagged 0/63
+===== phase2_visibility_only.json: min_peak 0.0000, min_visible 0.5
+test frames kept 30331/30949 (98.0%), kept median 21.3 px, p90 195.9
+within session: alarm 133.5 px (25 val cams), 120 test cams, healthy FA 5.0%, healthy rise median 1.8
+   trans_0.5 +2.4px/5%  trans_1.0 +3.4px/5%  trans_2.0 +7.1px/5%  trans_5.0 +24.2px/5%  rot_0.5 +2.4px/5%  rot_1.0 +3.9px/5%  rot_2.0 +8.9px/5%  rot_5.0 +30.2px/5%
+   frames   5: alarm 163.9, 120 cams, FA 7.5%, caught 5cm 8% 5deg 9% 2cm 8%
+   frames  10: alarm 148.6, 120 cams, FA 10.0%, caught 5cm 10% 5deg 10% 2cm 10%
+   frames  20: alarm 159.4, 120 cams, FA 8.3%, caught 5cm 8% 5deg 8% 2cm 8%
+   frames  50: alarm 127.4, 116 cams, FA 8.6%, caught 5cm 9% 5deg 8% 2cm 8%
+   frames 100: alarm 158.2, 57 cams, FA 7.0%, caught 5cm 7% 5deg 7% 2cm 7%
+between sessions: 22 val / 112 test pairs, alarm 239.5, noise floor p50/p90/p99 11.8/105.4/428.9, healthy FA 2.7%
+   trans_0.5 +0.1px/3%  trans_1.0 +1.0px/3%  trans_2.0 +5.5px/3%  trans_5.0 +23.4px/3%  rot_0.5 +0.2px/3%  rot_1.0 +1.5px/3%  rot_2.0 +6.9px/3%  rot_5.0 +26.6px/2%
+real drift: Pred caught 3/58 (recall 5%), test GT FA 3/120, precision 0.50, not scored 0; Pred serials seen in training: 14 (0 of the caught, 30 of the moved)
+   fix (translation only, weakly constrained) vs DROID: median 475 mm; DROID's own correction median 285 mm
+fix + held-out re-check: 5/6 pass
+encoder injected: 10.0 mm flagged 3/120, 20.0 mm flagged 3/120
+
+--- Signed record ---
+KINTRACE  recommission record, DROID IPRL Franka, camera 21582473
+================================================================
+Episode      : IPRL/success/2023-06-30/Fri_Jun_30_17:22:36_2023
+Checked at   : 2026-10-03 16:55:38
+What changed : camera off its calibration: residual 353.7 px over 55 frames (alarm 204.8 px)
+Fix          : camera position moved 344.1 mm (translation only, weakly constrained)
+Re-check     : residual 10.9 px, passes
+vs DROID     : configured pose was 284.7 mm / 16.06 deg from DROID's re-solved pose; after the fix the camera position is 186.4 mm from it
+STATUS: GO  (signed)
+
+--- Preflight on DROID camera 20252535 (TRI, healthy test GT episode) ---
+healthy: residual 5.7 px, alarm 204.8 px -> GO (exit 0); 2 cm injected: 14.1 px -> GO (exit 0); 5 cm injected: 37.0 px -> GO (exit 0)
+
+--- Other robots (public LeRobot data, 10 episodes each; python -m kintrace.crossrobot) ---
+ALOHA (bimanual)             arms         eps 10  delay   84.8 ms [82..87]  healthy latency alarms 0/10  injected latency: 20 ms 10/10 (err 0.0)  50 ms 10/10 (err 0.5)  100 ms 10/10 (err 0.0)
+                                          healthy offset alarms 0/10  injected offset: 2 deg 10/10 (err 0.09)  5 deg 10/10 (err 0.09)
+Koch v1.1                    arm          eps 10  delay   88.4 ms [87..90]  healthy latency alarms 0/10  injected latency: 20 ms 10/10 (err 0.5)  50 ms 10/10 (err 0.7)  100 ms 10/10 (err 0.0)
+                                          healthy offset alarms 2/10  injected offset: 2 deg 9/10 (err 0.22)  5 deg 10/10 (err 0.37)
+SO-100                       arm          eps 10  delay  115.2 ms [114..116]  healthy latency alarms 0/10  injected latency: 20 ms 10/10 (err 1.4)  50 ms 10/10 (err 1.3)  100 ms 10/10 (err 0.0)
+                                          healthy offset alarms 0/10  injected offset: 2 deg 10/10 (err 0.09)  5 deg 10/10 (err 0.09)
+Unitree G1 (humanoid)        arms         eps 10  delay   85.9 ms [84..90]  healthy latency alarms 0/10  injected latency: 20 ms 10/10 (err 0.9)  50 ms 10/10 (err 1.1)  100 ms 10/10 (err 0.1)
+                                          healthy offset alarms 0/10  injected offset: 2 deg 10/10 (err 0.17)  5 deg 10/10 (err 0.13)
+LeKiwi (mobile manipulator)  arm          eps 10  delay   50.4 ms [50..54]  healthy latency alarms 0/10  injected latency: 20 ms 10/10 (err 0.5)  50 ms 10/10 (err 0.3)  100 ms 10/10 (err 0.3)
+                                          healthy offset alarms 0/10  injected offset: 2 deg 10/10 (err 0.00)  5 deg 10/10 (err 0.00)
+LeKiwi (mobile manipulator)  base wheels  eps 10  delay   56.2 ms [55..66]  healthy latency alarms 3/10  injected latency: 20 ms 7/10 (err 5.1)  50 ms 8/10 (err 7.5)  100 ms 8/10 (err 8.8)
+URDF vs hand-written FK, 1000 random poses: Panda max 6.9e-9 mm, UR5e (base_link_inertia -> tool0) 2.1e-7 mm, SO-101 1.9e-13 mm.
+kintrace preflight on SO-100 (lerobot/svla_so100_pickplace ep 0, reference 5 episodes): healthy GO exit 0 (115.2 vs 114.4 ms); +20 ms injected NO-GO exit 1 (+22.5 ms); no reference exit 2.
+
+=== 2026-10-03 17:27 Drift alarm fix: per-camera alarm with a reliability gate (held-out DROID cameras) ===
+Rules written in PROGRESS.md before test; gate and thresholds set on validation; test scored once.
+$ python -m kintrace.droid.alarm calibrate ; python -m kintrace.droid.alarm test
+gate: {'X': 15, 'Y': 0.7, 'val_cameras_kept': 8, 'val_cameras': 25, 'half_change_p99': 15.415731082198732}
+WITHIN n=  5: decided 39, cannot tell 81, k 35.5, d 301.7 px
+   rule2  false alarms 0/39  trans_0.5 0%  trans_1.0 0%  trans_2.0 1%  trans_5.0 2%  rot_0.5 0%  rot_1.0 0%  rot_2.0 1%  rot_5.0 3%
+   rule2b false alarms 0/39  trans_0.5 0%  trans_1.0 0%  trans_2.0 1%  trans_5.0 1%  rot_0.5 0%  rot_1.0 1%  rot_2.0 1%  rot_5.0 1%
+WITHIN n= 10: decided 39, cannot tell 81, k 49.1, d 298.6 px
+   rule2  false alarms 0/39  trans_0.5 0%  trans_1.0 0%  trans_2.0 1%  trans_5.0 2%  rot_0.5 0%  rot_1.0 0%  rot_2.0 1%  rot_5.0 2%
+   rule2b false alarms 1/39  trans_0.5 3%  trans_1.0 2%  trans_2.0 2%  trans_5.0 2%  rot_0.5 2%  rot_1.0 2%  rot_2.0 1%  rot_5.0 2%
+WITHIN n= 20: decided 39, cannot tell 81, k 60.7, d 266.7 px
+   rule2  false alarms 0/39  trans_0.5 0%  trans_1.0 0%  trans_2.0 1%  trans_5.0 3%  rot_0.5 0%  rot_1.0 0%  rot_2.0 2%  rot_5.0 3%
+   rule2b false alarms 1/39  trans_0.5 3%  trans_1.0 3%  trans_2.0 3%  trans_5.0 3%  rot_0.5 3%  rot_1.0 3%  rot_2.0 3%  rot_5.0 2%
+WITHIN n= 50: decided 37, cannot tell 83, k 79.7, d 235.2 px
+   rule2  false alarms 0/37  trans_0.5 0%  trans_1.0 0%  trans_2.0 1%  trans_5.0 2%  rot_0.5 0%  rot_1.0 0%  rot_2.0 2%  rot_5.0 3%
+   rule2b false alarms 0/37  trans_0.5 0%  trans_1.0 0%  trans_2.0 0%  trans_5.0 0%  rot_0.5 0%  rot_1.0 0%  rot_2.0 0%  rot_5.0 1%
+WITHIN n=all: decided 39, cannot tell 81, k 50.5, d 105.9 px
+   rule2  false alarms 1/39  trans_0.5 3%  trans_1.0 3%  trans_2.0 4%  trans_5.0 5%  rot_0.5 3%  rot_1.0 3%  rot_2.0 4%  rot_5.0 8%
+   rule2b false alarms 0/39  trans_0.5 0%  trans_1.0 0%  trans_2.0 0%  trans_5.0 1%  rot_0.5 0%  rot_1.0 0%  rot_2.0 0%  rot_5.0 2%
+BETWEEN n=  5: decided 340, cannot tell 947, k 57.4, d 513.2 px, noise floor p50/p90/p99 7.8/268.5/715.0 px
+   rule2  false alarms 26/340  trans_0.5 8%  trans_1.0 8%  trans_2.0 8%  trans_5.0 8%  rot_0.5 8%  rot_1.0 8%  rot_2.0 8%  rot_5.0 8%
+   rule2b false alarms 19/340  trans_0.5 5%  trans_1.0 5%  trans_2.0 6%  trans_5.0 5%  rot_0.5 5%  rot_1.0 5%  rot_2.0 5%  rot_5.0 6%
+BETWEEN n= 10: decided 340, cannot tell 947, k 81.3, d 513.2 px, noise floor p50/p90/p99 7.9/268.3/719.3 px
+   rule2  false alarms 25/340  trans_0.5 7%  trans_1.0 7%  trans_2.0 7%  trans_5.0 8%  rot_0.5 7%  rot_1.0 7%  rot_2.0 7%  rot_5.0 8%
+   rule2b false alarms 19/340  trans_0.5 5%  trans_1.0 5%  trans_2.0 5%  trans_5.0 5%  rot_0.5 6%  rot_1.0 5%  rot_2.0 5%  rot_5.0 5%
+BETWEEN n= 20: decided 340, cannot tell 947, k 112.3, d 503.8 px, noise floor p50/p90/p99 7.8/269.0/715.8 px
+   rule2  false alarms 21/340  trans_0.5 6%  trans_1.0 6%  trans_2.0 7%  trans_5.0 7%  rot_0.5 6%  rot_1.0 6%  rot_2.0 6%  rot_5.0 7%
+   rule2b false alarms 13/340  trans_0.5 4%  trans_1.0 4%  trans_2.0 4%  trans_5.0 5%  rot_0.5 4%  rot_1.0 4%  rot_2.0 4%  rot_5.0 4%
+BETWEEN n= 50: decided 338, cannot tell 949, k 99.4, d 237.5 px, noise floor p50/p90/p99 6.7/34.9/624.6 px
+   rule2  false alarms 9/338  trans_0.5 3%  trans_1.0 3%  trans_2.0 3%  trans_5.0 3%  rot_0.5 3%  rot_1.0 3%  rot_2.0 3%  rot_5.0 3%
+   rule2b false alarms 9/338  trans_0.5 3%  trans_1.0 3%  trans_2.0 3%  trans_5.0 3%  rot_0.5 3%  rot_1.0 3%  rot_2.0 3%  rot_5.0 2%
+BETWEEN n=100: decided 329, cannot tell 958, k 124.3, d 223.4 px, noise floor p50/p90/p99 7.5/26.4/141.4 px
+   rule2  false alarms 4/329  trans_0.5 1%  trans_1.0 1%  trans_2.0 2%  trans_5.0 2%  rot_0.5 1%  rot_1.0 1%  rot_2.0 2%  rot_5.0 2%
+   rule2b false alarms 3/329  trans_0.5 1%  trans_1.0 1%  trans_2.0 1%  trans_5.0 1%  rot_0.5 1%  rot_1.0 1%  rot_2.0 1%  rot_5.0 1%
+BETWEEN n=all: decided 340, cannot tell 947, k 300.9, d 260.3 px, noise floor p50/p90/p99 8.4/36.1/171.7 px
+   rule2  false alarms 2/340  trans_0.5 1%  trans_1.0 1%  trans_2.0 1%  trans_5.0 1%  rot_0.5 1%  rot_1.0 1%  rot_2.0 1%  rot_5.0 1%
+   rule2b false alarms 2/340  trans_0.5 1%  trans_1.0 1%  trans_2.0 1%  trans_5.0 0%  rot_0.5 1%  rot_1.0 1%  rot_2.0 1%  rot_5.0 0%
+REAL: Pred cameras 58, on untrained serials 28, decided 10, cannot tell 18
+   rule2  moved 1/10, false alarms 2/340 healthy GT pairs, precision 0.33
+   rule2b moved 1/10, false alarms 2/340, precision 0.33
+     21582473 IPRL+7790ec0a+2023-06-30-17h-22m-36s delta    371.7 px  z   4580.1  rule2 moved     rule2b moved
+     24400334 AUTOLab+44bb9c36+2023-11-26-15h-12m- delta     28.8 px  z     14.9  rule2 no change rule2b no change
+     20252535 TRI+52ca9b6a+2024-02-13-16h-00m-50s  delta    176.9 px  z    135.5  rule2 no change rule2b no change
+     25947356 TRI+52ca9b6a+2023-11-28-11h-44m-42s  delta    170.5 px  z     90.1  rule2 no change rule2b no change
+     28451778 TRI+52ca9b6a+2024-01-11-13h-49m-25s  delta    110.6 px  z     38.3  rule2 no change rule2b no change
+     28451778 TRI+52ca9b6a+2023-10-24-17h-23m-51s  delta     54.9 px  z     22.5  rule2 no change rule2b no change
+     25916956 IPRL+2fe9715d+2023-08-23-17h-54m-18s delta    197.6 px  z    174.1  rule2 no change rule2b no change
+     24400334 AUTOLab+44bb9c36+2023-11-26-16h-19m- delta     53.3 px  z     28.2  rule2 no change rule2b no change
+     25916956 IPRL+2fe9715d+2023-08-21-18h-28m-50s delta     30.6 px  z     18.4  rule2 no change rule2b no change
+     22246076 GuptaLab+553d1bd5+2023-05-28-16h-17m delta     34.5 px  z     62.9  rule2 no change rule2b no change
+
+Healthy GT sessions of camera 20252535 (median residual, px): 2023-09-21 22.8/36.2/34.8, 10-25 83.7/35.7, 10-26 483.4, 10-31 19.5/11.4, 11-01 8.9, 11-02 285.2/10.4, 11-07 116.7
+
+Preflight, TRI camera 20252535, baseline 2023-11-01 11:00, checked 2023-11-02 16:42:
+  healthy: +1.5 px, z 1.8 -> GO (exit 0); 2 cm: +6.3 px, z 7.7 -> GO; 5 cm: +25.7 px, z 31.2 -> GO; alarm at z > 300.9
+
+=== 2026-10-03 18:28 Arms session: three-keypoint detector, fix vs DROID, blinded test, sessions ===
+DROID (real Franka). Held out by camera serial. Rules in PROGRESS.md before test; thresholds from validation; test scored once.
+
+--- Three-keypoint detector (flange, hand centre, fingertip centre on the tool axis) ---
+VAL: flange median 15.9 px, p90 79.3, within 12 px 35.1%, episode offset 12.6 px; hand_centre median 16.7 px, p90 127.7, within 12 px 35.1%, episode offset 11.3 px; fingertip_centre median 18.6 px, p90 215.7, within 12 px 31.0%, episode offset 12.1 px
+TEST: flange median 18.7 px, p90 109.4, within 12 px 31.0%, episode offset 12.5 px; hand_centre median 17.9 px, p90 155.4, within 12 px 32.3%, episode offset 12.5 px; fingertip_centre median 20.9 px, p90 208.2, within 12 px 25.9%, episode offset 13.6 px
+6-DoF refit (validation, first half -> second half, 25 cameras): median 18.4 -> 15.2 px, offset 12.9 -> 9.9 px, refit 44 mm / 4.5 deg
+Finger-opening axis could not be fixed from the contact sheet; left/right fingertips not used.
+
+--- Drift alarm with three keypoints ---
+No reliability gate passes the validation rule (even with X down to 8 px): not calibrated, not scored on test.
+
+--- Fix vs DROID's corrected pose (all cached Pred cameras) ---
+all: 58 cameras; configured 153 mm / 15.0 deg from DROID; ours 79 mm / 7.2 deg; plain PnP 729 mm / 68.4 deg; ours closer than configured 35; ours at least as close as plain 43; held-out re-check GO 47
+untrained: 28 cameras; configured 153 mm / 14.0 deg from DROID; ours 79 mm / 7.1 deg; plain PnP 529 mm / 49.6 deg; ours closer than configured 17; ours at least as close as plain 21; held-out re-check GO 24
+GO line (validation p90 healthy residual): 41.5 px
+
+--- Error bars (bootstrap 90%, injected bumps 0-5 cm / 0-5 deg) ---
+raw bootstrap coverage: validation 26% / 16%, test 30% / 25% (translation / rotation)
+widened by the validation 90th pct size error (+-123.6 mm, +-10.4 deg): test coverage 92% / 93%
+size error median (test, 240 cases): 36.0 mm / 3.0 deg
+
+--- Blinded test (python -m kintrace.droid.blinded make|run|score) ---
+{
+ "cases": 40,
+ "healthy": 9,
+ "caught": 1,
+ "missed": 13,
+ "false_alarms": 0,
+ "true_negatives": 2,
+ "cant_tell": 24,
+ "caught_by_size": {
+  "0-1 cm": [
+   0,
+   1
+  ],
+  "1-2 cm": [
+   0,
+   4
+  ],
+  "2-5 cm": [
+   1,
+   9
+  ]
+ },
+ "size_error_mm_median": 34.46256937159282,
+ "size_error_deg_median": 3.106377928463193,
+ "interval_coverage_translation": 0.9,
+ "interval_coverage_rotation": 0.85,
+ "answers_sha256": "05461f2b79256905a1ab2d8af55a4fe79ac2d42fa04c070385b1cfa676e38efa"
+}
+--- Sessions over time (test serials) ---
+142 sessions on 8 cameras; tracking error vs DROID median 59 mm / 5.2 deg (p90 279 mm / 23.3 deg)
+consecutive pairs 134: DROID moved 102, both 101, missed 1, false flags 26 (threshold 56 mm / 4.1 deg from 4 validation pairs)
+
+--- Signed record ---
+KINTRACE  recommission record, DROID camera 29838012 (three-keypoint check)
+================================================================
+Episode      : IRIS/success/2023-05-03/Wed_May__3_09:24:38_2023
+What moved   : camera 307 mm (90%: 164 to 439), 21.3 deg (90%: 9.8 to 32.8) over 225 frames
+Fix          : camera calibration replaced with the fitted 6-DoF pose
+Re-check     : held-out error 78.6 px -> 15.1 px (healthy level 41.5 px)
+vs DROID     : calibration was 304 mm / 22.0 deg from DROID's re-solved pose; the fix is 18 mm / 3.1 deg from it
+STATUS: GO after fix  (signed)
+
+--- Preflight, TRI 20252535 vs its 2023-11-01 session, final detector (fingertip) ---
+healthy +3.3 px z 2.6 GO; 2 cm +7.0 px z 5.6 GO; 5 cm +25.6 px z 20.3 GO (alarm z > 300.9, calibrated with the single-keypoint detector)
+
+--- Not run ---
+Wrist camera: no ground truth in DROID's corrected set and no wrist-view detector. RH20T: calibration only in multi-GB archives; HF mirrors drop it.

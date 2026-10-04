@@ -1,15 +1,19 @@
 # Respite Labs
 
-**The check layer for robot arms.** Kintrace is the check: a few seconds a
-robot spends confirming its body is what its software thinks it is.
+**The check layer for physical AI. Starting with robot arms.**
 
-Monitoring tools watch a robot's software. Kintrace watches its body: is the
-camera where the calibration says, is the tool the length the controller
-thinks, are the joint zeros still zero, do commands land on time. When one of
-those changes, Kintrace says what moved, by how much, and writes the fix.
+When a robot's body is right, its sensors agree. When something physical
+changes, they disagree in a pattern that says what moved.
 
-No AI model inside. It's geometry and statistics, so the same log always gives
-the same answer, and every answer can be checked.
+Kintrace is the check: a short routine a robot runs (a 6.3 s check motion in
+simulation) to confirm its body is what its software thinks it is. Is the camera where the calibration says, is the tool
+the length the controller thinks, are the joint zeros still zero, do commands
+land on time. When one of those changes, Kintrace says what moved, by how much,
+and writes the fix.
+
+The checks are geometry and statistics, so the same log always gives the same
+answer and every answer can be checked. One small vision model finds the
+gripper in camera images; that is the only learned part.
 
 Website: [respitelabs.net](https://www.respitelabs.net). Contact: contact@respitelabs.net
 
@@ -18,9 +22,10 @@ Website: [respitelabs.net](https://www.respitelabs.net). Contact: contact@respit
 | | Status |
 |---|---|
 | Simulated UR5e cell | 120/120 faults named and sized. See [Results](#results-simulation). |
-| Real Franka data (DROID) | Ran on 50 DROID episodes: injected delays caught 145/150. Camera, encoder and tool checks wait on a gripper detector. See [DROID](#real-robot-data-droid-in-progress). |
-| Real arm (SO-101 desk rig) | Hardware on order. Nothing measured yet. |
-| Someone else's robot | Not yet. Send one recording and we'll run it: `kintrace import` + `kintrace check`. |
+| Real Franka data (DROID) | Held-out cameras: gripper detector 81 px -> 19.9 px median, measured on different held-out camera sets (12 px target missed). Camera fix on real moved cameras: 153 mm / 15 deg -> 79 mm / 7 deg from DROID's own corrected pose. Drift alarm: nothing reliably caught at 1 false alarm in 100. Blinded test: 1 of 14 bumps caught, 0 false alarms, 24 of 40 "can't tell"; size error 34 mm / 3 deg with honest 90% ranges. Injected delays caught 145/150. Tested on recordings, not on a live arm. See [DROID](#real-robot-data-droid-in-progress). |
+| Other robots (public LeRobot data) | Timing and joint-offset checks on ALOHA, Koch, SO-100, Unitree G1 arms and LeKiwi: injected latency 30/30 on every arm set, 0 healthy alarms. See [Also runs on other robots](#also-runs-on-other-robots-timing-and-joint-offsets). |
+| Real arm (SO-101 desk rig) | Next: SO-101 desk rig. Nothing measured on a real arm yet. |
+| Someone else's robot | Send one recording and we'll run it: `kintrace import` + `kintrace check`, or `kintrace preflight`. |
 
 Every number in this file says which row it comes from.
 
@@ -50,8 +55,9 @@ kintrace check log.npz                                                          
 
 `import` reads the joints and commands from the recording and finds the
 wrist in each frame. Today that needs a printed AprilTag on the wrist (two
-minutes of tape; `kintrace rig tags` prints one). A markerless detector for
-the Franka hand is the next piece, see the DROID section. `check` runs in
+minutes of tape; `kintrace rig tags` prints one). A markerless detector exists
+only for DROID's Franka arms with a Robotiq gripper (see the DROID section);
+other grippers still need the tag. `check` runs in
 single-session mode: the settings the recording was made with count as
 "last known good", and the question is whether the sensors still agree with
 them. What a recording is missing (no commanded joints, no camera) is
@@ -185,9 +191,9 @@ dropouts and unmodeled effects. The two sections below are how we get past that.
 with fixed stereo cameras. Each episode records the camera extrinsics the cell
 was configured with. In 2025 the DROID team re-solved the extrinsics for ~36k
 episodes ([KarlP/droid](https://huggingface.co/KarlP/droid)) because
-the stored calibration could not be trusted for those episodes. That is the
-fault the check exists for, on real robots, with ground truth: the configured
-pose is the belief, the corrected pose is the truth.
+the stored calibration could not be trusted for those episodes. That gives real
+cases where the running calibration was replaced, with DROID's corrected pose
+as the reference. It is DROID's estimate, not a measured ground truth.
 
 GT = DROID kept the original calibration. Pred = DROID re-solved it. Only Pred
 entries can show a moved camera, and a Pred difference is camera movement or a
@@ -207,33 +213,21 @@ What each fault can and cannot get from DROID:
 
 | Fault | On DROID | Needs |
 |---|---|---|
-| Camera moved | Real. Ground truth from the corrected extrinsics. | gripper detector |
-| Commands late | Injected: measured joint stream shifted against the commanded one. Real motion, real timing noise. | nothing, runs today |
-| Encoder zero drifted | Injected: a bias added to one joint's measured angle, sized by how far it moves the fingertip. Real motion, real images. | gripper detector |
-| Tool offset edited | Injected: config change. The check is a settings diff, so the data only has to stay quiet. | gripper detector |
+| Camera moved | Real cases (Pred) and injected bumps. The gripper detector plus a 2D check; results below. | runs today |
+| Commands late | Injected: measured joint stream shifted against the commanded one. Real motion, real timing noise. | runs today |
+| Encoder zero drifted | Injected: a bias added to one joint's measured angle. In 2D it looks like a moved camera: 0 of 63 flagged. | a 3D point per frame |
+| Tool offset edited | A settings comparison against the known-good config; not run on frames. | nothing |
 | Bent tool | Not possible. Nothing in DROID records the tool. Waits for the desk arm. | the SO-101 |
 
 Injected faults on real logs are how most fault-detection work gets evaluated, and
 they are labelled "injected" everywhere here. They are not the same as a camera
 someone actually bumped, which is why the camera row matters most.
 
-Two levels of result:
-
-1. **Labels (no vision).** How often, and by how much, DROID cameras sat away
-   from their configured pose. Real data, nothing of ours in the loop. Numbers
-   go here once we have run it on a few hundred episodes.
-2. **Detection.** Joints plus fixed-camera frames through `diagnose()` with the
-   configured extrinsic as the belief, scored against the label. DROID arms
-   have no wrist fiducial, so this needs one point on the gripper per frame:
-   `kintrace/droid/convert.py: detect_gripper()` is the function to fill
-   (Franka Hand keypoint model, or a mask plus ZED depth). It is not written
-   yet. `--synthetic` runs the same pipeline with detections made from the
-   corrected pose plus 3 mm noise, which tests everything except the detector.
-   On a 12-episode synthetic fixture: 10/10 moved cameras caught, 1 false
-   alarm on a camera 7.9 mm off (just under the 10 mm threshold, 21 frames).
-   Injected faults on the same fixture: latency 72/72 at 10 to 50 ms, tool
-   offset 33/33, encoder drift 17/22 at 10 and 20 mm of tip motion and 1/11
-   at 5 mm (under the 3 mm detector noise assumed). Pipeline tests, not results.
+DROID arms carry no wrist marker, so the camera checks need a markerless gripper
+detector (`kintrace/droid/detector.py`, `detect_gripper()` in `convert.py`). Before
+it existed, `--synthetic` ran the pipeline with detections made from the corrected
+pose plus 3 mm noise: on a 12-episode fixture, 10/10 moved cameras caught. That is a
+pipeline test, not a result; the real-frame results are below.
 
 ### What has run on real DROID data (50 episodes, Oct 2026)
 
@@ -245,14 +239,165 @@ Raw output: [RESULTS_DROID.txt](RESULTS_DROID.txt).
 - **Commands late (injected delays on real Franka joint streams).** Caught
   145/150: 48/50 at 10 ms, 48/50 at 20 ms, 49/50 at 50 ms. Size error median
   4.40 ms.
-- **Encoder zero drifted.** Not run. Waits on the gripper detector.
-- **Tool offset edited.** Not run. Waits on the gripper detector.
-- **Camera moved.** Not run on real frames. Waits on the gripper detector.
+
+### Gripper detector on real DROID frames (Oct 2026)
+
+**Gripper detector: 81 px -> 19.9 px median on held-out real cameras.**
+
+DROID is a real Franka dataset. Labels are free: on episodes where DROID kept the
+calibration (GT), the fingertip from forward kinematics is projected into the image.
+Train, validation and test are split by camera serial. The first 317 labelled GT
+episodes come from 26 physical cameras, not 317; 4 more cameras were added for
+training later.
+
+| Held-out test cameras (8 serials, 120 cameras) | Median | p90 | Within 12 px |
+|---|---|---|---|
+| Small CNN (Phase 3, its own held-out set) | 81 px | 302 px | n/a |
+| ResNet-18, epoch 50 | 19.9 px | 232 px | 30.2% |
+| After tuning on a validation split (chosen on validation) | 21.8 px | 220 px | 27.2% |
+
+The 81 px and the other rows were measured on different held-out cameras. The
+tuning round (finer output, stronger augmentation, unfreezing, a label rule for a
+hidden gripper) shrank the tail but did not beat 19.9 px on test.
+
+It missed the 12 px target. On validation about half the median error is a fixed
+offset per camera and episode (median 11.8 px), the rest is scatter (13.4 px). The
+offset is not the intrinsics (checked), not the keypoint definition (no shared
+direction in the gripper frame), not timing (a +30 ms median shift between video and
+joints exists but removes nothing) and not a recoverable calibration error (a camera
+refit from one keypoint is too weakly constrained to say). In a by-eye sample of 24
+big misses, 14 were real detector misses and 7 were label problems (gripper hidden
+or elsewhere).
+
+### Camera drift on DROID (injected and real)
+
+The check compares a camera with its own baseline, so a fixed offset cancels. On
+held-out GT cameras, with a known calibration error injected:
+
+| Injected | 0.5 cm | 1 cm | 2 cm | 5 cm | 0.5 deg | 1 deg | 2 deg | 5 deg |
+|---|---|---|---|---|---|---|---|---|
+| Rise in the camera's median residual, within a session | -0.6 px | 0.8 px | 5.1 px | 22.0 px | -0.2 px | 1.7 px | 6.7 px | 29.8 px |
+
+Healthy session-to-session spread on the same camera: median 7.8 px, p90 45.4 px,
+p99 177.8 px. At 1 false alarm in 100 the alarm level is about 200 px, set by a few
+cameras where the detector fails for part of an episode, so no drift size is caught
+at that rate yet. Real drift on cameras DROID re-solved (Pred): 6 of 45 flagged, with
+0 false alarms on 63 healthy test cameras. Raw output and both filter settings are in
+RESULTS_DROID.txt.
+
+A per-camera alarm (`kintrace/droid/alarm.py`: a reliability gate, then each camera
+against its own healthy baseline, all set on validation) did not fix this. Measured on
+held-out DROID cameras, test scored once: the gate leaves 39 of 120 cameras decidable
+within a session (81 answer "can't tell"); at 1 false alarm in 100 it catches at most 8%
+of 5 deg and 5% of 5 cm bumps. Between sessions on the same camera the healthy noise floor
+is median 8.4 px but p90 36 px and p99 172 px: healthy sessions of one camera range from
+9 px to 483 px. On real DROID re-solved cameras it decided 10, called 1 moved, and answered
+"can't tell" on 18. The open question is whether those healthy jumps are the detector or
+DROID's kept calibrations.
+
+### Fixing real moved cameras (DROID, three keypoints)
+
+The detector now finds three points on the tool axis: flange, hand centre and
+fingertip (held-out cameras: 18.7, 17.9 and 20.9 px median). With three points a
+6-DoF camera pose can be fitted from one episode. On every camera DROID re-solved
+(58; 28 never seen in training), measured against DROID's own corrected pose:
+
+| | Distance to DROID's corrected pose (median) |
+|---|---|
+| The calibration the robot was running | 153 mm / 15.0 deg |
+| Kintrace's fix | 79 mm / 7.2 deg (untrained cameras: 79 mm / 7.1 deg) |
+| Plain PnP on the same points, no starting pose | 729 mm / 68 deg |
+
+The fix is closer than the running calibration on 35 of 58 cameras and passes a
+held-out re-check on 47. The best case, IRIS camera 29838012, went from 304 mm to
+18 mm; that is a best case, the median is 153 mm to 79 mm over 58 cameras. It roughly halves the error but is not a calibration
+tool yet: one episode pins the camera to about a decimetre. Every size comes with a
+90% range calibrated on held-out cameras (true size inside it 92% / 93% of the time).
+
+Blinded test (`python -m kintrace.droid.blinded`, sealed answers): 40 cases, 24
+"can't tell", 1 of 14 bumps caught, 0 false alarms; size error 34 mm / 3.1 deg, and
+the 90% ranges held the truth 90% / 85% of the time.
+
+Over 142 sessions on 8 held-out cameras, Kintrace's per-session camera pose follows
+DROID's corrected pose (median 59 mm / 5.2 deg apart) while the cameras move 100 to
+600 mm between sessions. It does not yet tell a real move from fit noise: it flags
+26 of the 32 sessions where DROID's pose did not change.
+
+**What we learned from DROID.** DROID's cameras move 100 to 600 mm between
+sessions, and healthy sessions of one camera range from 9 px to 483 px of error.
+So DROID cannot validate cm-level drift detection: a 2 cm bump has not been shown
+to be caught on real data. What it does show is that the fix moves a badly off
+calibration about halfway to DROID's own corrected pose. The next step is a
+controlled test on a real arm, with known bumps.
+
+`kintrace report <episode> --camera SERIAL` writes one HTML page per camera: where
+the calibration says the hand is, where the camera sees it, the fix, and before vs
+after.
+
+The camera result comes from the 2D check in `kintrace/droid/phase2.py` (detector,
+then residual against the forward-kinematics fingertip), not from the full
+`diagnose()` path, which needs a 3D point per frame that one DROID view does not give.
+
+- **Encoder zero drifted (injected, 10 and 20 mm at the fingertip).** Flagged 0 of 63.
+  In 2D a joint that reads wrong looks like a camera that moved; the check cannot
+  separate them.
+- **Tool offset edited.** A settings comparison; it does not depend on the frames.
+
+## Also runs on other robots (timing and joint offsets)
+
+The camera checks need a calibrated fixed camera, which public sets on other
+robots mostly don't have. What needs only commanded and measured joints runs on
+any recording that logs both. Real public LeRobot recordings, 10 episodes each; the reference is the
+same robot's other episodes. Latency faults are injected (the measured stream
+shifted by 20, 50 and 100 ms); joint offsets are injected (2 and 5 deg on one
+joint). The joint-offset check is new and simple: each joint's median of measured
+minus commanded.
+
+| Robot (dataset) | Joints | Delay | Healthy latency alarms | Injected latency caught | Healthy offset alarms | Injected offset caught |
+|---|---|---|---|---|---|---|
+| ALOHA, bimanual (lerobot/aloha_static_coffee) | 12 | 84.8 ms | 0/10 | 30/30 | 0/10 | 20/20 |
+| Koch (lerobot/koch_pick_place_5_lego) | 5 | 88.4 ms | 0/10 | 30/30 | 2/10 | 19/20 |
+| SO-100 (lerobot/svla_so100_pickplace) | 5 | 115.2 ms | 0/10 | 30/30 | 0/10 | 20/20 |
+| Unitree G1 humanoid, both arms (unitreerobotics/G1_Dex1_Stack_Block) | 14 | 85.9 ms | 0/10 | 30/30 | 0/10 | 20/20 |
+| LeKiwi mobile manipulator, arm (QianGroup/lekiwi_pick_sponge) | 5 | 50.4 ms | 0/10 | 30/30 | 0/10 | 20/20 |
+| LeKiwi, wheeled base (same set) | 3 wheels | 56.2 ms | 3/10 | 23/30 | not run | not run |
+
+Not tested on these robots: anything that needs a camera (camera moved, encoder
+drift seen by the camera, bent tool). The wheels are the weakest row.
+
+`kintrace/urdf.py` loads a robot body from a URDF. Checked against the hand-written
+models over 1,000 random poses: Franka Panda max 6.9e-9 mm, UR5e max 2.1e-7 mm,
+SO-101 max 2e-13 mm. A Unitree G1 URDF and an SO-100 URDF load and run forward
+kinematics; nothing more is claimed for them.
+
+`kintrace preflight <recording>` runs every check that applies, prints one line
+per check (ok, problem, or skipped and why), then GO or NO-GO. Exit code 0 is GO,
+1 is NO-GO, 2 is not enough data, so a lab can put it in front of a
+data-collection or shift-start script.
+
+## Where this goes (roadmap, not built yet)
+
+| Robot type | Sensors that should agree | What drift looks like | Status |
+|---|---|---|---|
+| Arms | joint encoders, commands, fixed and wrist cameras | camera bumped, tool bent, joint zero off, commands late | now |
+| Mobile robots | wheel odometry, IMU, lidar or camera | wheel slip, wheel radius off, sensor mount moved | not built (base timing only, above) |
+| Humanoids | joint encoders, IMU, foot contact, head cameras | joint zero off, camera knocked, foot sensor bias | not built (arm timing only, above) |
+| Drones | IMU, GPS, motor commands, camera | IMU misaligned, motor weakening, camera mount loose | not built |
+
+## How we're different
+
+- Observability tools such as Ember and Foxglove collect and show robot data, so
+  engineers can investigate.
+- Robot makers' tools such as FANUC ZDT predict part wear on their own brand.
+- Calibration tools such as RoboDK or Dynalog fix the robot with measuring
+  hardware.
+- Kintrace works out the physical cause from the robot's own sensors, sizes it,
+  writes the fix and signs off, with no fixtures.
 
 ## Real arm results
 
-None yet. An SO-101 desk arm is on order and `kintrace rig` is the capture and
-check path for it (`HARDWARE.md`). The plan is the same faults as the
+None yet. Next: an SO-101 desk rig; `kintrace rig` is the capture and check path
+for it (`HARDWARE.md`). Nothing has been measured on a real arm. The plan is the same faults as the
 simulation, caused on purpose, on that arm, and this section gets the
 numbers as they come in, good or bad.
 
@@ -267,7 +412,10 @@ LeRobot datasets, ROS 1/2 bags, MCAP and UR RTDE recordings.
 
 - `kintrace/robot.py`, `kintrace/arms.py` arm kinematics (UR5e-class, SO-101, Franka Panda)
 - `kintrace/readers/` LeRobot, ROS bag / MCAP, UR RTDE -> kintrace log
-- `kintrace/droid/` DROID adapter: download, labels, injected faults, detection run
+- `kintrace/droid/` DROID adapter: download, labels, gripper detector (training, eval,
+  `detect()`), per-camera alarm, 6-DoF fix with error bars, blinded test, HTML report
+- `kintrace/urdf.py` robot bodies from URDF; `kintrace/preflight.py` GO / NO-GO with exit codes
+- `kintrace/crossrobot.py` timing and joint-offset check on public LeRobot recordings
 - `kintrace/sim.py` simulated pick cell with fault injection
 - `kintrace/diagnose.py` the checks and the explanation fitting
 - `kintrace/recommission.py` find, check, fix, certify

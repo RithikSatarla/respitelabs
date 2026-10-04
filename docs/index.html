@@ -584,13 +584,13 @@ WARNING at 06:01:00  health 71/100
           <tr><th scope="row">Core question</th><td data-h="Ember">What changed in the software, and what failed?</td><td data-h="Respite Labs">What changed in the robot itself, and what value puts it back?</td></tr>
           <tr><th scope="row">Watches</th><td data-h="Ember">Releases, logs, telemetry, fleet status</td><td data-h="Respite Labs">Camera vs arm, camera vs table marker, fingertip, command timing, controller settings</td></tr>
           <tr><th scope="row">After a crash</th><td data-h="Ember">Shows the timeline, the release and the error</td><td data-h="Respite Labs">Names the physical cause in mm, deg or ms, and the moment it changed</td></tr>
-          <tr><th scope="row">Touches the robot</th><td data-h="Ember">No. It observes.</td><td data-h="Respite Labs">Yes. One 6.3 s check motion, then writes the fix and runs 6 test picks.</td></tr>
+          <tr><th scope="row">Touches the robot</th><td data-h="Ember">No. It observes.</td><td data-h="Respite Labs">Yes. One check motion (6.3 s in simulation), then writes the fix and runs 6 test picks.</td></tr>
           <tr><th scope="row">Ends with</th><td data-h="Ember">An engineer who knows where to look</td><td data-h="Respite Labs">A GO or NO-GO record for the cell</td></tr>
         </tbody>
       </table>
     </div>
     <p class="wedge">Ember tells you something changed. <span>Respite Labs puts the robot back.</span></p>
-    <p class="lede">You can run both. Respite Labs reads a simple log format today, and a ROS 2 / MCAP reader is next, so it can sit next to Ember or Foxglove as a plug-in.</p>
+    <p class="lede">You can run both. Respite Labs reads LeRobot datasets, ROS 1 and 2 bags, MCAP and UR RTDE recordings today, so it can sit next to Ember or Foxglove as a plug-in.</p>
 
     <div class="onlyh"><span>What only Respite Labs does</span><span>built = runs in our simulator today</span></div>
     <div class="only">
@@ -704,7 +704,7 @@ picks 6/6 ...... GO</pre>
     <dl class="limits">
       <dt>Stress</dt><dd>100% right cause down to 8 mm faults and at 3x camera noise.</dd>
       <dt>Edge</dt><dd>At 5 mm a bent tool doesn't make picks fail, so Respite Labs reads the cell as healthy.</dd>
-      <dt>Limits</dt><dd>We built the simulator and the baseline. Real sensors have biases and dropouts. No real-robot results yet. Next is the same faults, caused on purpose, on a real arm at CMU.</dd>
+      <dt>Limits</dt><dd>We built the simulator and the baseline. Real sensors have biases and dropouts. No live-arm results yet; results on real Franka recordings (DROID) are in the repo README. Next is the same faults, caused on purpose, on a real arm.</dd>
     </dl>
   </div>
 </section>
@@ -771,7 +771,7 @@ picks 6/6 ...... GO</pre>
 </main>
 
 <footer>
-  <div class="wrap"><span>RESPITE LABS · 2026</span><span>Harvard Innovation Labs</span><span>All results are from simulation. Real-robot results coming.</span><span><a href="pitch/" style="color:inherit">Deck</a></span></div>
+  <div class="wrap"><span>RESPITE LABS · 2026</span><span>Harvard Innovation Labs</span><span>Simulation results are labelled. Real-robot recordings (DROID): see the README. No live-arm results yet.</span><span><a href="pitch/" style="color:inherit">Deck</a></span></div>
 </footer>
 
 <script>
