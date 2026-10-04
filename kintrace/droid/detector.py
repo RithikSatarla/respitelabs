@@ -24,6 +24,7 @@ import json
 import os
 import sys
 import time
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -37,8 +38,8 @@ WARM_C = 75         # above this, wait ...
 RESUME_C = 70       # ... until below this
 WAIT_S = 180
 HOT_C = 85          # above this, save and stop for good
-CHECK_S = 120       # inference: check the temperature this often
-WATCH_S = 30        # training: read the temperature this often, stop at once above HOT_C
+CHECK_S = 30        # inference: check the temperature this often
+WATCH_S = 30        # training: read this often; pause above WARM_C until below RESUME_C, stop above HOT_C
 BATCH = 16
 
 
@@ -49,7 +50,7 @@ def _torch():
 
 def device():
     torch = _torch()
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and torch.cuda.device_count() > 0:
         return torch.device("cuda")
     print("CUDA not available: running on CPU", file=sys.stderr)
     return torch.device("cpu")
@@ -237,7 +238,7 @@ def soft_argmax(logits):
     torch = _torch()
     b, h, w = logits.shape
     p = torch.softmax(logits.reshape(b, -1).float(), 1).reshape(b, h, w)
-    xs = (torch.arange(w, device=p.device, dtype=p.dtype) + 0.5) * STRIDE - 0.5
+    xs = (torch.arange(w, device=p.device, dtype=p.dtype) + 0.5) * (SMALL_W / w) - 0.5   # cell size from the map
     ys = (torch.arange(h, device=p.device, dtype=p.dtype) + 0.5) * (SMALL_H / h) - 0.5
     return torch.stack([(p.sum(1) * xs).sum(1), (p.sum(2) * ys).sum(1)], 1), p
 
@@ -252,14 +253,39 @@ def _to_input(frames_bgr_u8, dev):
 # data
 # --------------------------------------------------------------------------
 def load_cameras(data: str) -> list:
+    """Labels for every FK-labelled camera. Frames stay on disk (frames_of) so hundreds of cameras fit in RAM."""
     with open(os.path.join(data, "fk_labels", "index.json"), encoding="utf-8") as f:
         index = json.load(f)["written"]
     cams = []
     for r in index:
         z = np.load(r["file"])
-        cams.append(dict(key=r["key"], serial=r["serial"], frames=z["frames"], uv=z["uv"], uv_full=z["uv_full"],
-                         visible=z["visible"].astype(bool), full_w=int(z["full_size"][0]), file=r["file"]))
+        vis = z["visible"].astype(bool)
+        cams.append(dict(key=r["key"], serial=r["serial"], uv=z["uv"], uv_full=z["uv_full"], visible=vis,
+                         n=len(vis), full_w=int(z["full_size"][0]), file=r["file"]))
     return cams
+
+
+def frames_of(cam: dict) -> np.ndarray:
+    """(N, 180, 320, 3) BGR uint8 frames for one camera, read from its npz."""
+    return np.load(cam["file"])["frames"]
+
+
+def build_cache(cams: list, path: str) -> str:
+    """Write all cameras' frames into one .npy, a camera at a time (never all in RAM)."""
+    total = sum(c["n"] for c in cams)
+    if os.path.exists(path) and np.load(path, mmap_mode="r").shape[0] == total:
+        return path
+    part = path + ".part.npy"
+    mm = np.lib.format.open_memmap(part, mode="w+", dtype=np.uint8, shape=(total, SMALL_H, SMALL_W, 3))
+    i = 0
+    for c in cams:
+        f = frames_of(c)
+        mm[i:i + len(f)] = f
+        i += len(f)
+    mm.flush()
+    del mm
+    os.replace(part, path)
+    return path
 
 
 def split_by_serial(cams: list, n_test_serials: int = 8, seed: int = 0) -> tuple:
@@ -321,13 +347,13 @@ def _gauss_target(uv, torch, sigma_cells: float = 1.5):
 # train / predict / evaluate
 # --------------------------------------------------------------------------
 def train(cams: list, cache_npy: str, heat: Heat, ckpt: str, ch: int = 32, epochs: int = 40,
-          batch: int = BATCH, lr: float = 2e-3, seed: int = 0, log=print, model=None):
+          batch: int = BATCH, lr: float = 2e-3, seed: int = 0, log=print, model=None,
+          start_epoch: int = 0, opt_state: dict | None = None):
     torch = _torch()
     torch.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     dev = device()
-    if not os.path.exists(cache_npy):
-        np.save(cache_npy, np.concatenate([c["frames"] for c in cams]))
+    build_cache(cams, cache_npy)
     uv = np.concatenate([c["uv"] for c in cams]).astype(np.float32)
     vis = np.concatenate([c["visible"] for c in cams])
     loader = torch.utils.data.DataLoader(FrameSet(cache_npy, uv, vis), batch_size=batch, shuffle=True,
@@ -337,9 +363,19 @@ def train(cams: list, cache_npy: str, heat: Heat, ckpt: str, ch: int = 32, epoch
     opt = torch.optim.AdamW([q for q in model.parameters() if q.requires_grad], lr=lr, weight_decay=1e-4)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=epochs * len(loader), pct_start=0.1)
     scaler = torch.amp.GradScaler(dev.type, enabled=dev.type == "cuda")
+    if start_epoch:
+        # resume: optimiser state from the checkpoint, learning-rate schedule moved on to where it was
+        import warnings
+        if opt_state is not None:
+            opt.load_state_dict(opt_state)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for _ in range(start_epoch * len(loader)):
+                sched.step()
+        log(f"  resuming at epoch {start_epoch + 1}/{epochs}, learning rate {sched.get_last_lr()[0]:.2e}")
     t0 = time.time()
     try:
-        for ep in range(epochs):
+        for ep in range(start_epoch, epochs):
             _epoch(model, loader, opt, sched, scaler, dev, heat, ep, torch, log)
             log(f"  epoch {ep + 1}/{epochs}  loss {model._loss:.3f}  ({time.time() - t0:.0f} s)")
             if (ep + 1) % RUN_EPOCHS == 0 or ep == epochs - 1:
@@ -357,7 +393,7 @@ def _epoch(model, loader, opt, sched, scaler, dev, heat, ep, torch, log):
     tot = n = 0
     for fr, u, v in loader:
         if time.time() - heat.last >= WATCH_S:
-            heat.read(f"during epoch {ep + 1}")
+            heat.settle(f"during epoch {ep + 1}")  # above WARM_C: pause here until below RESUME_C
         x = _to_input(fr, dev)
         u, v = u.to(dev), v.to(dev)
         x, u, v = _augment(x, u, v, torch)
@@ -403,7 +439,7 @@ def evaluate(model, cams: list, heat: Heat | None = None) -> dict:
     err_s, err_f, rows = [], [], []
     vis_ok = vis_n = 0
     for c in cams:
-        uv, pv = predict(model, c["frames"], heat)
+        uv, pv = predict(model, frames_of(c), heat)
         v = c["visible"]
         vis_ok += int(((pv > 0.5) == v).sum())
         vis_n += len(v)
@@ -431,14 +467,100 @@ _CACHE: dict = {}
 
 
 def load(path: str):
+    """Model from a checkpoint. The backbone is read from the weights, so mid-run *_ckpt.pt files load too."""
     torch = _torch()
     if path not in _CACHE:
         ck = torch.load(path, map_location=device(), weights_only=False)
-        m = build_model(ck["ch"], use_resnet=ck.get("use_resnet", False)).to(device())
+        if "cfg" in ck:  # experiment checkpoint (experiments.py)
+            from .experiments import load_model
+            _CACHE[path] = load_model(path)[0].eval()
+            return _CACHE[path]
+        use_resnet = ck.get("use_resnet", any(k.startswith("layer1.") for k in ck["state"]))
+        m = build_model(ck.get("ch", 32), use_resnet=use_resnet).to(device())
         m.load_state_dict(ck["state"])
         m.eval()
         _CACHE[path] = m
     return _CACHE[path]
+
+
+def predict_conf(model, frames_small, heat: Heat | None = None, batch: int = BATCH, pause_s: float = 0.0):
+    """(N, 180, 320, 3) BGR uint8 -> uv (N, 2) at 320x180, visibility probability, heatmap peak, heatmap entropy.
+
+    The one inference path: the evaluation script and detect() both call this.
+    """
+    torch = _torch()
+    dev = next(model.parameters()).device
+    model.eval()
+    uvs, ps, peaks, ents = [], [], [], []
+    with torch.no_grad():
+        for i in range(0, len(frames_small), batch):
+            if heat is not None:
+                heat.tick("inference")
+            x = _to_input(frames_small[i:i + batch], dev)
+            with torch.autocast(dev.type, dtype=torch.float16, enabled=dev.type == "cuda"):
+                hm, vl = model(x)
+            uv, p = soft_argmax(hm)
+            flat = p.reshape(len(p), -1)
+            uvs.append(uv.cpu().numpy())
+            ps.append(torch.sigmoid(vl.float()).cpu().numpy())
+            peaks.append(flat.max(1).values.cpu().numpy())
+            ents.append((-(flat * torch.log(flat.clamp_min(1e-12))).sum(1)).cpu().numpy())
+            if pause_s:
+                time.sleep(pause_s)  # gentle, steady load: a short rest after every batch
+    return np.concatenate(uvs), np.concatenate(ps), np.concatenate(peaks), np.concatenate(ents)
+
+
+DEFAULT_MODEL = "data/droid/detector_final.pt"
+MIN_VISIBLE = 0.5    # visibility head: below this the gripper is called out of view
+MIN_PEAK = 0.0       # heatmap peak: below this the detection is not trusted (set from the confidence study)
+
+
+@dataclass
+class Detection:
+    u: float          # full-res pixels
+    v: float
+    conf: float       # heatmap peak probability (higher = sharper, more certain)
+    visible_p: float  # visibility head probability
+
+
+KEYPOINTS_MULTI = ("flange", "hand_centre", "fingertip_centre")   # tool axis: 0, 110, 170 mm from the flange
+
+
+def detect_keypoints(frame, model_path: str = DEFAULT_MODEL, min_visible: float = MIN_VISIBLE,
+                     min_peak: float | None = None) -> dict:
+    """One full-res BGR frame -> {keypoint name: Detection or None}, full-res pixels.
+
+    Same preprocessing as training and evaluation (INTER_AREA resize to 320x180). A keypoint is
+    None when its visibility output is under min_visible or its heatmap peak under min_peak.
+    Single-keypoint models return only "fingertip_centre".
+    """
+    import cv2
+
+    small = cv2.resize(frame, (SMALL_W, SMALL_H), interpolation=cv2.INTER_AREA)
+    model = load(model_path)
+    if min_peak is None:  # threshold picked on validation, stored next to the model
+        cfg = os.path.splitext(model_path)[0] + ".json"
+        min_peak = json.load(open(cfg)).get("min_peak", MIN_PEAK) if os.path.exists(cfg) else MIN_PEAK
+    s = frame.shape[1] / SMALL_W
+    if getattr(model, "head", None) is not None and model.head.out_channels > 1:
+        from .multikp import predict as predict_multi
+        uv, p, peak = predict_multi(model, small[None], None, "detect")
+        names = KEYPOINTS_MULTI
+        uv, p, peak = uv[0], p[0], peak[0]
+    else:
+        uv, p, peak, _ = predict_conf(model, small[None])
+        names = ("fingertip_centre",)
+    out = {}
+    for j, name in enumerate(names):
+        ok = p[j] >= min_visible and peak[j] >= min_peak
+        out[name] = Detection(float(uv[j, 0] * s), float(uv[j, 1] * s), float(peak[j]), float(p[j])) if ok else None
+    return out
+
+
+def detect(frame, model_path: str = DEFAULT_MODEL, min_visible: float = MIN_VISIBLE,
+           min_peak: float | None = None) -> Detection | None:
+    """One full-res BGR frame -> the Robotiq fingertip centre in full-res pixels, or None (see detect_keypoints)."""
+    return detect_keypoints(frame, model_path, min_visible, min_peak)["fingertip_centre"]
 
 
 def main(argv=None):
@@ -457,8 +579,8 @@ def main(argv=None):
     cams = load_cameras(a.data)
     tr, te, test_serials = split_by_serial(cams, seed=a.seed)
     print(f"DROID GT cameras: {len(cams)} ({len({c['serial'] for c in cams})} serials). "
-          f"Train {len(tr)} cameras / {sum(len(c['frames']) for c in tr)} frames. "
-          f"Held out {len(te)} cameras / {sum(len(c['frames']) for c in te)} frames, serials {', '.join(test_serials)}")
+          f"Train {len(tr)} cameras / {sum(c['n'] for c in tr)} frames. "
+          f"Held out {len(te)} cameras / {sum(c['n'] for c in te)} frames, serials {', '.join(test_serials)}")
     print("excluded from training and evaluation: camera 23960472 (labels visibly off), "
           "cameras with all-zero intrinsics or no MP4 (see fk_labels/index.json)")
     ch, epochs = (64, a.epochs + 20) if a.wide else (32, a.epochs)

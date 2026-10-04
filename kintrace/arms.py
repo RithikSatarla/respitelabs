@@ -135,6 +135,10 @@ PANDA_ALPHA = np.array([0.0, -np.pi / 2, np.pi / 2, np.pi / 2, -np.pi / 2, np.pi
 PANDA_HOME_Q = np.array([0.0, -np.pi / 4, 0.0, -3 * np.pi / 4, 0.0, np.pi / 2, np.pi / 4])
 # panda_link8 -> fingertip centre of the stock Franka Hand with fingers closed
 PANDA_HAND_TIP = np.array([0.0, 0.0, 0.1034])
+# panda_link8 -> fingertip centre of a Robotiq 2F-85. DROID Franka arms carry a
+# Robotiq 2F-85, not the Franka Hand. 0.17 m was checked visually on the DROID
+# FK contact sheet (data/droid/labels_check.png), not measured on hardware.
+ROBOTIQ_2F85_TIP = np.array([0.0, 0.0, 0.17])
 
 
 def panda_fk(q: np.ndarray) -> np.ndarray:
@@ -188,8 +192,18 @@ def get(name: str) -> Arm:
         raise ValueError(f"unknown arm '{name}', known: {', '.join(ARMS)}") from None
 
 
+_URDF_CACHE: dict = {}
+
+
 def for_config(cfg: dict | None) -> Arm:
-    """The arm a log was recorded on. Logs without an 'arm' key are UR5e-class."""
+    """The arm a log was recorded on. A 'urdf' key loads that body (kintrace.urdf);
+    logs without an 'arm' key are UR5e-class."""
+    if cfg and cfg.get("urdf"):
+        key = (cfg["urdf"], cfg.get("urdf_base"), cfg.get("urdf_tip"))
+        if key not in _URDF_CACHE:
+            from . import urdf
+            _URDF_CACHE[key] = urdf.load(cfg["urdf"], base=cfg.get("urdf_base"), tip=cfg.get("urdf_tip"))
+        return _URDF_CACHE[key]
     if not cfg or "arm" not in cfg:
         return UR5E
     return get(cfg["arm"])

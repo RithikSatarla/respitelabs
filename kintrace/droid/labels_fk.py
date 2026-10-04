@@ -29,7 +29,10 @@ from . import episode as ep_mod
 from .extrinsics import Corrected
 
 SMALL = (320, 180)  # (w, h) the detector trains at
-TIP = arms.PANDA_HAND_TIP
+TIP = arms.ROBOTIQ_2F85_TIP
+# cameras left out of training and evaluation. 23960472: two contact-sheet
+# tiles were visibly off the gripper; cause not investigated.
+EXCLUDED = {"23960472": "label visibly off the gripper on the contact sheet"}
 
 
 def intrinsics_for(intr: dict, key: str, serial: str, size=None) -> np.ndarray | None:
@@ -79,8 +82,29 @@ def read_frames(path: str) -> np.ndarray:
     return np.asarray(out)
 
 
-def gt_cameras(data: str):
-    """(manifest entry, Episode, serial, configured cam2base, meta) for each fixed camera of each GT episode."""
+def read_small(path: str, size=SMALL) -> tuple:
+    """Decode an MP4 and shrink each frame as it is read. Returns ((N, h, w, 3) frames, (full_w, full_h))."""
+    import cv2
+    cap = cv2.VideoCapture(path)
+    full = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    out = []
+    while True:
+        ok, f = cap.read()
+        if not ok:
+            break
+        full = (f.shape[1], f.shape[0])
+        out.append(cv2.resize(f, size, interpolation=cv2.INTER_AREA))
+    cap.release()
+    return (np.asarray(out) if out else np.zeros((0, size[1], size[0], 3), np.uint8)), full
+
+
+def gt_cameras(data: str, excluded=None):
+    """(manifest entry, Episode, serial, configured cam2base, meta) for the GT camera of each GT episode.
+
+    A DROID calibration entry covers one camera. Only that camera's configured
+    pose is the one DROID checked and kept; the episode's other camera is not used.
+    """
+    excluded = EXCLUDED if excluded is None else excluded
     with open(os.path.join(data, "manifest.json"), encoding="utf-8") as f:
         manifest = json.load(f)
     corrected = Corrected.load(data)
@@ -93,13 +117,15 @@ def gt_cameras(data: str):
         except Exception as e:
             print(f"skip {m['path']}: {e}", file=sys.stderr)
             continue
-        for name in ("ext1", "ext2"):
-            serial = ep.serials.get(name)
-            if serial and serial in ep.configured:
+        for serial in corrected.lookup(m["key"]) or {}:
+            if serial in excluded:
+                print(f"excluded {m['path']} {serial}: {excluded[serial]}", file=sys.stderr)
+                continue
+            if serial in ep.configured and serial != ep.serials.get("wrist"):
                 yield m, ep, serial, ep.configured[serial], meta
 
 
-def build(data: str, out_dir: str | None = None) -> list:
+def build(data: str, out_dir: str | None = None, only_new: bool = False) -> list:
     import cv2
 
     out_dir = out_dir or os.path.join(data, "fk_labels")
@@ -108,24 +134,29 @@ def build(data: str, out_dir: str | None = None) -> list:
         intr = json.load(f)
     written, skipped = [], []
     for m, ep, serial, T, meta in gt_cameras(data):
+        path = os.path.join(out_dir, f"{m['key']}_{serial}.npz")
+        if only_new and os.path.exists(path):
+            z = np.load(path)
+            written.append(dict(file=path, key=m["key"], serial=str(serial), frames=int(len(z["visible"])),
+                                visible=int(z["visible"].sum())))
+            continue
         video = ep.video(serial)
         if video is None:
             skipped.append((m["path"], serial, "no MP4"))
             continue
-        frames = read_frames(video)
-        if not len(frames):
+        small, (w, h) = read_small(video)
+        if not len(small):
             skipped.append((m["path"], serial, "MP4 decoded to 0 frames"))
             continue
-        h, w = frames.shape[1:3]
         K = intrinsics_for(intr, m["key"], serial, (w, h))
         if K is None:
             skipped.append((m["path"], serial, "no intrinsics"))
             continue
-        n = min(len(frames), len(ep.t))
+        n = min(len(small), len(ep.t))
         pc, t = tip_in_camera(ep, serial, T, n)
         uv, vis = project(K, pc, (w, h))
         s = SMALL[0] / w
-        small = np.stack([cv2.resize(f, SMALL, interpolation=cv2.INTER_AREA) for f in frames[:n]])
+        small = small[:n]
         path = os.path.join(out_dir, f"{m['key']}_{serial}.npz")
         np.savez_compressed(
             path, frames=small, uv=(uv * s).astype(np.float32), uv_full=uv.astype(np.float32), visible=vis,
@@ -144,8 +175,8 @@ def build(data: str, out_dir: str | None = None) -> list:
 
 
 def contact_sheet(data: str, out: str | None = None, n: int = 12, seed: int = 0) -> str:
-    """n frames from n different cameras, the label drawn on each. Green: label point.
-    Blue: FK flange. Red: 0.17 m along the tool axis (a Robotiq 2F-85 fingertip guess)."""
+    """n frames from n different cameras, the label drawn on each. Green: label point
+    (Robotiq 2F-85 fingertip). Blue: FK flange. Red: the Franka Hand tip, for reference."""
     import cv2
 
     out = out or os.path.join(data, "labels_check.png")
@@ -167,7 +198,7 @@ def contact_sheet(data: str, out: str | None = None, n: int = 12, seed: int = 0)
         # reference marks along the tool axis, through the same camera model
         K, kk = z["K"], str(z["key"])
         ep = ep_mod.load(dirs[kk]["dir"], key=dirs[kk]["path"])
-        for off, col in ((0.0, (255, 120, 0)), (0.17, (0, 0, 255))):
+        for off, col in ((0.0, (255, 120, 0)), (arms.PANDA_HAND_TIP[2], (0, 0, 255))):
             pc, _ = tip_in_camera(ep, str(z["serial"]), ep.configured[str(z["serial"])], k + 1, tip=np.array([0, 0, off]))
             uv, ok = project(K, pc[k:k + 1], tuple(z["full_size"]))
             if ok[0]:
@@ -190,9 +221,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog="python -m kintrace.droid fklabels")
     ap.add_argument("--data", default="data/droid")
     ap.add_argument("--sheet-only", action="store_true")
+    ap.add_argument("--only-new", action="store_true", help="keep existing label files, build missing ones")
     a = ap.parse_args(argv)
     if not a.sheet_only:
-        build(a.data)
+        build(a.data, only_new=a.only_new)
     contact_sheet(a.data)
 
 

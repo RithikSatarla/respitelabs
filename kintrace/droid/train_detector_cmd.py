@@ -35,22 +35,31 @@ class DROIDKeypoints(detector.FrameSet):
 
     @classmethod
     def from_cameras(cls, cams: list, cache_npy: str) -> "DROIDKeypoints":
-        if not os.path.exists(cache_npy):
-            np.save(cache_npy, np.concatenate([c["frames"] for c in cams]))
+        detector.build_cache(cams, cache_npy)
         uv = np.concatenate([c["uv"] for c in cams]).astype(np.float32)
         vis = np.concatenate([c["visible"] for c in cams])
         return cls(cache_npy, uv, vis)
 
 
 def train_detector(cams: list, data: str, heat: detector.Heat, ckpt: str, use_resnet: bool = False,
-                   pretrained: bool = False, freeze: bool = False, ch: int = 32, epochs: int = 40, seed: int = 0):
+                   pretrained: bool = False, freeze: bool = False, ch: int = 32, epochs: int = 40, seed: int = 0,
+                   batch: int = detector.BATCH, resume_from: str | None = None):
+    import torch
+
     tag = hashlib.md5("|".join(sorted(c["key"] + c["serial"] for c in cams)).encode()).hexdigest()[:8]
     ds = DROIDKeypoints.from_cameras(cams, os.path.join(data, "fk_labels", f"train_frames_{tag}.npy"))
-    model = detector.build_model(ch, use_resnet=use_resnet, pretrained=pretrained)
+    model = detector.build_model(ch, use_resnet=use_resnet, pretrained=pretrained and not resume_from)
+    start, opt_state = 0, None
+    if resume_from:
+        ck = torch.load(resume_from, map_location="cpu", weights_only=False)
+        model.load_state_dict(ck["state"])
+        start, opt_state = int(ck["epoch"]), ck.get("opt")
+        print(f"resuming from {resume_from}: {start} epochs done")
     if freeze:
         n = detector._freeze_backbone(model)
         print(f"froze {n} of {sum(p.numel() for p in model.parameters())} parameters")
-    return detector.train(cams, ds.npy, heat, ckpt, ch=ch, epochs=epochs, seed=seed, model=model)
+    return detector.train(cams, ds.npy, heat, ckpt, ch=ch, epochs=epochs, seed=seed, model=model, batch=batch,
+                          start_epoch=start, opt_state=opt_state)
 
 
 def main(argv=None):
@@ -67,9 +76,14 @@ def main(argv=None):
     ap.add_argument("--ch", type=int, default=32, help="small CNN width (ignored with --resnet)")
     ap.add_argument("--max-episodes", type=int, default=None, help="use only the first N GT cameras")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--resume", "--resume-from", dest="resume_from", default=None,
+                    help="checkpoint (*_ckpt.pt) to continue from: weights, optimizer state, epoch counter")
+    ap.add_argument("--batch-size", type=int, default=detector.BATCH, help=f"at most {detector.BATCH} (heat rule)")
     a = ap.parse_args(argv)
     if a.pretrained and not a.resnet:
         ap.error("--pretrained needs --resnet")
+    if a.batch_size > detector.BATCH:
+        ap.error(f"--batch-size above {detector.BATCH} is not allowed by the heat rules")
 
     print(f"torch {torch.__version__}, CUDA available: {torch.cuda.is_available()}"
           + (f" ({torch.cuda.get_device_name(0)})" if torch.cuda.is_available() else ""))
@@ -82,16 +96,17 @@ def main(argv=None):
     arch = "resnet18" + ("_pretrained" if a.pretrained else "") if a.resnet else f"cnn{a.ch}"
     name = f"detector_{arch}" + ("_frozen" if a.freeze else "") + (f"_smoke{a.max_episodes}" if a.max_episodes else "")
     print(f"DROID GT cameras: {len(cams)} ({len(serials)} serials). Train {len(tr)} cameras / "
-          f"{sum(len(c['frames']) for c in tr)} frames. Held out {len(te)} cameras / "
-          f"{sum(len(c['frames']) for c in te)} frames, serials {', '.join(test_serials)}")
-    print(f"model: {arch}, freeze={a.freeze}, {a.epochs} epochs, batch {detector.BATCH}, float16 autocast, "
+          f"{sum(c['n'] for c in tr)} frames. Held out {len(te)} cameras / "
+          f"{sum(c['n'] for c in te)} frames, serials {', '.join(test_serials)}")
+    print(f"model: {arch}, freeze={a.freeze}, {a.epochs} epochs, batch {a.batch_size}, float16 autocast, "
           f"runs of {detector.RUN_EPOCHS} epochs")
     heat = detector.Heat()
     ckpt = os.path.join(a.data, f"{name}_ckpt.pt")
     try:
         heat.settle("before training (idle)")
         model = train_detector(tr, a.data, heat, ckpt, use_resnet=a.resnet, pretrained=a.pretrained,
-                               freeze=a.freeze, ch=a.ch, epochs=a.epochs, seed=a.seed)
+                               freeze=a.freeze, ch=a.ch, epochs=a.epochs, seed=a.seed, batch=a.batch_size,
+                               resume_from=a.resume_from)
         heat.settle("before evaluation")
         ev = detector.evaluate(model, te, heat)
     except detector.Overheat as e:
