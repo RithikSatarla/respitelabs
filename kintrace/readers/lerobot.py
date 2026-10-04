@@ -36,8 +36,11 @@ def _episode_rows(root: str, info: dict, episode: int):
 
     data_path = info.get("data_path", "data/chunk-{episode_chunk:03d}/episode_{episode_index:06d}.parquet")
     chunk = episode // int(info.get("chunks_size", 1000))
-    p = os.path.join(root, data_path.format(episode_chunk=chunk, episode_index=episode))
-    if os.path.exists(p):
+    try:
+        p = os.path.join(root, data_path.format(episode_chunk=chunk, episode_index=episode))
+    except KeyError:  # v3 templates use {chunk_index}/{file_index}: the episode is found below
+        p = None
+    if p and os.path.exists(p):
         return pd.read_parquet(p)
     # v3: episodes live in shared files; find the one that holds this episode
     for f in sorted(glob.glob(os.path.join(root, "data", "**", "*.parquet"), recursive=True)):
@@ -53,7 +56,10 @@ def _video_path(root: str, info: dict, episode: int, cam_key: str):
     chunk = episode // int(info.get("chunks_size", 1000))
     cands = []
     if vp:
-        cands.append(os.path.join(root, vp.format(episode_chunk=chunk, episode_index=episode, video_key=cam_key)))
+        try:
+            cands.append(os.path.join(root, vp.format(episode_chunk=chunk, episode_index=episode, video_key=cam_key)))
+        except KeyError:  # v3 template: handled below from the episode metadata
+            pass
     cands.append(os.path.join(root, "videos", f"chunk-{chunk:03d}", cam_key, f"episode_{episode:06d}.mp4"))
     for c in cands:
         if os.path.exists(c):
@@ -87,7 +93,7 @@ def _episode_meta(root: str, episode: int) -> dict | None:
         df = pd.read_parquet(f)
         row = df[df["episode_index"] == episode]
         if len(row):
-            return {k: (v.item() if hasattr(v, "item") else v) for k, v in row.iloc[0].items()}
+            return {k: (v.item() if hasattr(v, "item") and getattr(v, "size", 1) == 1 else v) for k, v in row.iloc[0].items()}
     return None
 
 

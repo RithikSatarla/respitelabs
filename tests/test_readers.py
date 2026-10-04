@@ -51,6 +51,37 @@ def test_lerobot_v2(tmp_path):
     assert any("skipped" in c.detail for c in d.checks)
 
 
+def test_lerobot_v3_templates_and_array_metadata(tmp_path):
+    """v3 layout as published on Hugging Face: {chunk_index}/{file_index} path templates, several
+    episodes per data file, and per-episode metadata with array columns (the stats)."""
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pyarrow")
+    root = tmp_path / "ds3"
+    (root / "meta" / "episodes" / "chunk-000").mkdir(parents=True)
+    (root / "data" / "chunk-000").mkdir(parents=True)
+    t, q = _joints()
+    deg = np.rad2deg(q)
+    rows = []
+    for ep in (0, 1):
+        rows.append(pd.DataFrame({"observation.state": list(np.c_[deg + ep, np.full(N, 10.0)]),
+                                  "action": list(np.c_[deg + ep, np.full(N, 10.0)]), "timestamp": t,
+                                  "frame_index": np.arange(N), "episode_index": np.full(N, ep)}))
+    pd.concat(rows).to_parquet(root / "data" / "chunk-000" / "file-000.parquet")
+    pd.DataFrame({"episode_index": [0, 1], "length": [N, N],
+                  "stats/observation.state/mean": [np.zeros(6), np.ones(6)]}).to_parquet(
+        root / "meta" / "episodes" / "chunk-000" / "file-000.parquet")
+    info = dict(fps=HZ, codebase_version="v3.0", chunks_size=1000,
+                data_path="data/chunk-{chunk_index:03d}/file-{file_index:03d}.parquet",
+                video_path="videos/{video_key}/chunk-{chunk_index:03d}/file-{file_index:03d}.mp4",
+                features={"observation.state": {"shape": [6]}, "action": {"shape": [6]},
+                          "observation.images.front": {"dtype": "video"}})
+    (root / "meta" / "info.json").write_text(json.dumps(info))
+    s = readers.lerobot.read(str(root), episode=1, units="deg")
+    assert s.q_meas.shape == (N, 5)
+    assert np.allclose(s.q_meas, np.deg2rad(deg + 1))   # episode 1, not episode 0
+    assert any("video" in m for m in s.missing)
+
+
 # --------------------------------------------------------------------------
 def test_ros2_bag(tmp_path):
     rosbags = pytest.importorskip("rosbags")
