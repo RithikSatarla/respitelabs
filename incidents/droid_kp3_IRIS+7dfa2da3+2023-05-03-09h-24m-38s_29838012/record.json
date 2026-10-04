@@ -1,0 +1,41 @@
+{
+  "kind": "kintrace recommission record (DROID, real Franka data, three-keypoint camera check)",
+  "episode": "IRIS/success/2023-05-03/Wed_May__3_09:24:38_2023",
+  "episode_id": "IRIS+7dfa2da3+2023-05-03-09h-24m-38s",
+  "camera": "29838012",
+  "checked_at": "2026-10-03 18:24:52",
+  "what_moved": {
+    "camera_translation_mm": 306.8308465784215,
+    "camera_rotation_deg": 21.287799789846993,
+    "translation_90pct_mm": [
+      163.89659253896335,
+      438.5737114934401
+    ],
+    "rotation_90pct_deg": [
+      9.754231822642307,
+      32.786469235611634
+    ],
+    "frames": 225
+  },
+  "fix": "camera calibration replaced with the 6-DoF pose fitted from flange, hand centre and fingertip",
+  "recheck": {
+    "held_out_residual_before_px": 78.58848801801597,
+    "held_out_residual_after_px": 15.126072276442466,
+    "go_line_px": 41.48405086055465
+  },
+  "droid_reference": {
+    "configured_vs_droid_mm": 303.9754232052849,
+    "configured_vs_droid_deg": 21.992541042333283,
+    "fix_vs_droid_mm": 18.329455535380227,
+    "fix_vs_droid_deg": 3.131848459147353
+  },
+  "status": "GO after fix",
+  "note": "Real DROID recording. 90% ranges are bootstrap intervals widened by the validation size error (test coverage 92% / 93%). A Pred difference is camera movement or a calibration that was never right.",
+  "signed_at": "2026-10-03T23:24:52+00:00",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "5e1282541b1ec2b5",
+    "public_key": "jxE8D+yA+s6pgDOUxsw33EzF0dvMq1Y82ICOqZZNhUE=",
+    "sig": "ts+J9isOetg624R7ljE4PiqtXeNazU2S+V36C8HaZr/GTV4C3KlaApb5iT0kWgO4p0U3YjgPKHmsDxEDnpM6CA=="
+  }
+}

@@ -82,6 +82,8 @@ def _cmd_import(a):
     print(stream.describe())
     if cfg is None:
         sys.exit("\nno --config: need arm, camera_extrinsic, markers and tcp_offset to build a Log (a rig.json works)")
+    if a.urdf:
+        cfg = dict(cfg, urdf=a.urdf, urdf_base=a.urdf_base, urdf_tip=a.urdf_tip)
     if "camera_extrinsic" not in cfg and "known_good" in cfg:
         cfg = dict(cfg, **{k: cfg["known_good"][k] for k in ("camera_extrinsic", "tcp_offset") if k in cfg["known_good"]})
     if "markers" not in cfg and "tags" in cfg:
@@ -104,6 +106,8 @@ def _cmd_check(a):
     from .diagnose import self_baseline
 
     log = Log.load(a.log)
+    if a.urdf:
+        log.config = dict(log.config, urdf=a.urdf, urdf_base=a.urdf_base, urdf_tip=a.urdf_tip)
     d = diagnose(log, self_baseline(log, a.sigma_mm))
     name = os.path.basename(a.log)
     print(text_report(d, name))
@@ -112,6 +116,12 @@ def _cmd_check(a):
         with open(a.json, "w", encoding="utf-8") as f:
             f.write(d.to_json())
         print(f"json : {a.json}")
+
+
+def _urdf_args(s):
+    s.add_argument("--urdf", help="robot body from a URDF instead of a named arm")
+    s.add_argument("--urdf-base", help="URDF base link (default: the root link)")
+    s.add_argument("--urdf-tip", help="URDF tip link (default: the end of the longest moving chain)")
 
 
 def _cmd_bench(a):
@@ -192,6 +202,13 @@ def _cmd_demo(a):
 
 
 def main(argv=None):
+    args = sys.argv[1:] if argv is None else list(argv)
+    if args and args[0] == "preflight":  # every check that applies, then GO / NO-GO; exit code 0 / 1 / 2
+        from .preflight import main as preflight_main
+        return preflight_main(args[1:])
+    if args and args[0] == "report":  # one self-contained HTML page for a DROID camera
+        from .droid.report_html import main as report_main
+        return report_main(args[1:])
     p = argparse.ArgumentParser(prog="kintrace", description="Tell which physical thing changed on a robot, from its own logs.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
@@ -231,12 +248,14 @@ def main(argv=None):
     s.add_argument("--image-topic")
     s.add_argument("--video", help="ur_rtde: camera video recorded alongside")
     s.add_argument("-o", "--out", default="log.npz")
+    _urdf_args(s)
     s.set_defaults(fn=_cmd_import)
 
     s = sub.add_parser("check", help="check one log with no earlier baseline")
     s.add_argument("log")
     s.add_argument("--sigma-mm", type=float, default=4.0, help="expected wrist detection noise")
     s.add_argument("--json")
+    _urdf_args(s)
     s.set_defaults(fn=_cmd_check)
 
     s = sub.add_parser("bench", help="Kintrace vs a standard monitoring dashboard")

@@ -1,0 +1,8 @@
+KINTRACE  recommission record, DROID camera 29838012 (three-keypoint check)
+================================================================
+Episode      : IRIS/success/2023-05-03/Wed_May__3_09:24:38_2023
+What moved   : camera 307 mm (90%: 164 to 439), 21.3 deg (90%: 9.8 to 32.8) over 225 frames
+Fix          : camera calibration replaced with the fitted 6-DoF pose
+Re-check     : held-out error 78.6 px -> 15.1 px (healthy level 41.5 px)
+vs DROID     : calibration was 304 mm / 22.0 deg from DROID's re-solved pose; the fix is 18 mm / 3.1 deg from it
+STATUS: GO after fix  (signed)

@@ -1,0 +1,38 @@
+{
+  "kind": "kintrace recommission record (DROID, real Franka data, 2D camera check)",
+  "robot": "DROID IPRL Franka Panda",
+  "episode": "IPRL/success/2023-06-30/Fri_Jun_30_17:22:36_2023",
+  "episode_id": "IPRL+7790ec0a+2023-06-30-17h-22m-36s",
+  "camera": "21582473",
+  "checked_at": "2026-10-03 16:55:38",
+  "detector": "data/droid/detector_final.pt",
+  "what_changed": {
+    "camera_moved": true,
+    "residual_px": 353.74225134642495,
+    "alarm_px": 204.83223397179117,
+    "frames_used": 55
+  },
+  "fix": {
+    "camera_translation_mm": 344.07054153283093,
+    "note": "translation-only fit of the camera position from one gripper keypoint: weakly constrained"
+  },
+  "recheck": {
+    "residual_px": 10.889289483256583,
+    "passed": true
+  },
+  "droid_reference": {
+    "source": "KarlP/droid cam2base_extrinsics.json (Pred)",
+    "configured_vs_droid_mm": 284.7391223709489,
+    "configured_vs_droid_deg": 16.062080172297048,
+    "fix_vs_droid_mm": 186.39061460042353
+  },
+  "status": "GO",
+  "note": "A real DROID recording; DROID's re-solved camera pose is the reference. A Pred difference is camera movement or a calibration that was never right; the data cannot tell which.",
+  "signed_at": "2026-10-03T21:55:38+00:00",
+  "signature": {
+    "alg": "ed25519",
+    "key_id": "5e1282541b1ec2b5",
+    "public_key": "jxE8D+yA+s6pgDOUxsw33EzF0dvMq1Y82ICOqZZNhUE=",
+    "sig": "pmDlTGHm5ZKjtnepnbKLTDcVfzwsitBmloRBgC0WLTAMQu+xgYaMRWK5wEr7srohq8//OzCuSi0T1qELZT8HAQ=="
+  }
+}

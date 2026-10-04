@@ -61,6 +61,7 @@ def _load_all(data: str):
             print(f"skip {m.get('path')}: no corrected extrinsics", file=sys.stderr)
             continue
         ep.meta["_corrected"] = corrected.meta(m.get("path", "")) or corrected.meta(m.get("key", ""))
+        ep.meta["_id"] = m.get("key", "")
         fixed = {s: T for s, T in ep.configured.items() if s != ep.serials.get("wrist")}
         labels = labels_for(fixed, corr)
         if labels:
@@ -209,6 +210,146 @@ def run_detect(data: str, synthetic: bool = False, every: int = 1, sigma_mm: flo
 
 
 # --------------------------------------------------------------------------
+def run_detect_2d(data: str, model_path: str, gt_only: bool = False) -> dict:
+    """Real DROID frames: detector -> 2D camera check (check2d.py). diagnose() is not used here."""
+    import time
+
+    import cv2
+    import torch
+
+    from . import check2d, detector, labels_fk
+    from .extrinsics import pose_error
+
+    heat = detector.Heat()
+    with open(os.path.join(data, "intrinsics.json"), encoding="utf-8") as f:
+        intr = json.load(f)
+    model = detector.load(model_path)
+    test_serials = set(torch.load(model_path, map_location="cpu", weights_only=False).get("test_serials", []))
+    rows, skipped = [], []
+    try:
+        heat.settle("before inference (idle)")
+        for ep, labels in _load_all(data):
+            src = ep.meta["_corrected"].get("source", "")
+            if gt_only and src != "GT":
+                continue
+            for serial, l in labels.items():
+                if serial in labels_fk.EXCLUDED:
+                    skipped.append((ep.key, serial, "excluded: " + labels_fk.EXCLUDED[serial]))
+                    continue
+                group = "Pred" if src == "Pred" else ("GT held-out" if serial in test_serials else "GT training")
+                if gt_only and group != "GT held-out":
+                    continue
+                video = ep.video(serial)
+                if video is None:
+                    skipped.append((ep.key, serial, "no MP4"))
+                    continue
+                small, (w, h) = labels_fk.read_small(video, (detector.SMALL_W, detector.SMALL_H))
+                K = labels_fk.intrinsics_for(intr, ep.meta["_id"], serial, (w, h))
+                if K is None:
+                    skipped.append((ep.key, serial, "no intrinsics"))
+                    continue
+                n = min(len(small), len(ep.t))
+                small = small[:n]
+                uv, p = detector.predict(model, small, heat)
+                uv = uv * (w / detector.SMALL_W)
+                tc = ep.t_cam.get(serial)
+                t = tc[:n] if tc is not None and len(tc) >= n else ep.t[:n]
+                q = np.stack([np.interp(t, ep.t, ep.q[:, j]) for j in range(ep.q.shape[1])], 1)
+                det = p > 0.5
+                # 2D error against FK projected through the belief (the label, on GT cameras)
+                fk_uv = check2d.project(l["belief"], K, check2d.fk_tips(q))
+                in_img = (fk_uv[:, 0] >= 0) & (fk_uv[:, 0] < w) & (fk_uv[:, 1] >= 0) & (fk_uv[:, 1] < h)
+                e2d = np.linalg.norm(uv - fk_uv, axis=1)[det & in_img]
+                res = check2d.camera_check_2d(q[det], uv[det], K, l["belief"])
+                if res is None:
+                    skipped.append((ep.key, serial, f"only {int(det.sum())} frames with a detection"))
+                    continue
+                fit_truth = pose_error(res.T_fit, l["truth"]) if res.T_fit is not None else None
+                rows.append(dict(
+                    episode=ep.key, camera=serial, group=group, label_moved=_moved(l),
+                    label_mm=l["translation_mm"], label_deg=l["rotation_deg"], called_moved=res.moved,
+                    frames=int(n), detections=int(det.sum()), inliers=res.inliers,
+                    err2d_px_median=float(np.median(e2d)) if len(e2d) else None, err2d_px=e2d.tolist(),
+                    residual_belief_px=res.residual_belief_px, residual_fit_px=res.residual_fit_px,
+                    fit_vs_belief_mm=res.fit_vs_belief_mm, fit_vs_belief_deg=res.fit_vs_belief_deg,
+                    fit_vs_droid_mm=fit_truth["translation_mm"] if fit_truth else None,
+                    fit_vs_droid_deg=fit_truth["rotation_deg"] if fit_truth else None))
+                print(f"  {group:11s} {ep.key[:44]:44s} {serial}  det {int(det.sum()):4d}/{n:<4d} "
+                      f"resid belief {res.residual_belief_px:6.1f} fit {res.residual_fit_px:6.1f} px  "
+                      f"fit-belief {res.fit_vs_belief_mm:7.1f} mm  moved={res.moved}", flush=True)
+    except detector.Overheat as e:
+        detector.write_progress(
+            "# Progress\n\n"
+            f"Stopped {time.strftime('%Y-%m-%d %H:%M:%S')}: {e}.\n\n"
+            "Phase 4/5, `python -m kintrace.droid detect` (real frames, inference). Stopped by the heat rule.\n"
+            "Do not resume without checking the laptop.\n\nTemperature log:\n\n"
+            + "\n".join(f"- {t} {lbl}: {c} C" for t, lbl, c in heat.log) + "\n")
+        print(f"STOPPED: {e}. Wrote PROGRESS.md")
+        sys.exit(3)
+    if not rows:
+        raise SystemExit("nothing scored")
+
+    def grp(g):
+        return [r for r in rows if r["group"] == g]
+
+    summary = dict(mode="detector on real DROID frames, 2D camera check (kintrace/droid/check2d.py), not diagnose()",
+                   model=model_path, test_serials=sorted(test_serials), skipped=skipped, heat_log=heat.log)
+    print(f"DROID detect run: {summary['mode']}")
+    print(f"  model {model_path}")
+    gh = grp("GT held-out")
+    if gh:
+        errs = [np.asarray(r["err2d_px"]) for r in gh if r["err2d_px"]]
+        e = np.concatenate(errs) if errs else np.zeros(0)
+        fb = np.array([r["fit_vs_belief_mm"] for r in gh])
+        fbd = np.array([r["fit_vs_belief_deg"] for r in gh])
+        fa = sum(r["called_moved"] for r in gh)
+        summary["gt_held_out"] = dict(
+            cameras=len(gh), false_alarms=fa,
+            err2d_px=dict(median=float(np.median(e)), p90=float(np.percentile(e, 90))) if len(e) else None,
+            fit_vs_belief_mm=dict(median=float(np.nanmedian(fb)), p90=float(np.nanpercentile(fb, 90))),
+            fit_vs_belief_deg=dict(median=float(np.nanmedian(fbd)), p90=float(np.nanpercentile(fbd, 90))))
+        s = summary["gt_held_out"]
+        print(f"  GT held-out cameras ({len(gh)}, serials never seen in training):")
+        if s["err2d_px"]:
+            print(f"    2D error, detector vs FK projection   median {s['err2d_px']['median']:.1f} px   "
+                  f"p90 {s['err2d_px']['p90']:.1f} px (full res)")
+        print(f"    fitted pose vs belief                 median {s['fit_vs_belief_mm']['median']:.1f} mm / "
+              f"{s['fit_vs_belief_deg']['median']:.2f} deg   p90 {s['fit_vs_belief_mm']['p90']:.1f} mm / "
+              f"{s['fit_vs_belief_deg']['p90']:.2f} deg")
+        print(f"    false alarms (called moved)           {fa}/{len(gh)}")
+    gp = grp("Pred")
+    if gp:
+        lm = [r for r in gp if r["label_moved"]]
+        caught = sum(r["called_moved"] for r in lm)
+        ft = np.array([r["fit_vs_droid_mm"] for r in gp if r["fit_vs_droid_mm"] is not None])
+        ftd = np.array([r["fit_vs_droid_deg"] for r in gp if r["fit_vs_droid_deg"] is not None])
+        summary["pred"] = dict(
+            cameras=len(gp), moved_in_labels=len(lm), caught=caught, recall=caught / max(len(lm), 1),
+            fit_vs_droid_pred_mm=dict(median=float(np.median(ft)), p90=float(np.percentile(ft, 90))) if len(ft) else None,
+            fit_vs_droid_pred_deg=dict(median=float(np.median(ftd))) if len(ftd) else None)
+        s = summary["pred"]
+        print(f"  Pred cameras ({len(gp)}; {len(lm)} off by > {MOVED_MM:.0f} mm or > {MOVED_DEG:.0f} deg per DROID):")
+        print(f"    called moved {caught}/{len(lm)} (recall {100 * s['recall']:.0f}%)")
+        if s["fit_vs_droid_pred_mm"]:
+            print(f"    fitted pose vs DROID's re-solved pose  median {s['fit_vs_droid_pred_mm']['median']:.1f} mm / "
+                  f"{s['fit_vs_droid_pred_deg']['median']:.2f} deg   p90 {s['fit_vs_droid_pred_mm']['p90']:.1f} mm")
+    gtr = grp("GT training")
+    if gtr:
+        print(f"  GT training cameras ({len(gtr)}): not counted, the detector trained on these serials")
+    print(f"  excluded or skipped: {len(skipped)}")
+    for k, s_, why in skipped:
+        print(f"    {k} {s_}: {why}")
+    print("  " + GT_PRED_NOTE)
+    out = dict(summary=summary, rows=rows)
+    path = os.path.join(data, "detect_gt_held_out.json" if gt_only else "detect.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, default=float)
+    print("  temperature log: " + ", ".join(f"{lbl} {c} C" for _, lbl, c in heat.log))
+    print(f"wrote {path}")
+    return out
+
+
+# --------------------------------------------------------------------------
 def _interp_rows(t_src, q_src, t):
     return np.stack([np.interp(t, t_src, q_src[:, i]) for i in range(q_src.shape[1])], 1)
 
@@ -332,6 +473,8 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("download", add_help=False)
     sub.add_parser("fklabels", add_help=False)
+    sub.add_parser("train-detector", add_help=False)
+    sub.add_parser("train_detector", add_help=False)
     p = sub.add_parser("survey")
     p.add_argument("--data", default="data/droid")
     p = sub.add_parser("labels")
@@ -339,6 +482,8 @@ def main(argv=None):
     p = sub.add_parser("detect")
     p.add_argument("--data", default="data/droid")
     p.add_argument("--synthetic", action="store_true")
+    p.add_argument("--model", default="data/droid/detector_wide.pt", help="real frames: detector checkpoint")
+    p.add_argument("--gt-only", action="store_true", help="real frames: held-out GT cameras only (the detector test)")
     p.add_argument("--every", type=int, default=1, help="use every Nth video frame")
     p.add_argument("--sigma-mm", type=float, default=4.0, help="expected detector noise")
     p.add_argument("--seed", type=int, default=0)
@@ -355,13 +500,22 @@ def main(argv=None):
     if argv and argv[0] == "fklabels":
         from . import labels_fk
         return labels_fk.main(argv[1:])
+    if argv and argv[0] == "train-detector":
+        from . import detector
+        return detector.main(argv[1:])
+    if argv and argv[0] == "train_detector":
+        from . import train_detector_cmd
+        return train_detector_cmd.main(argv[1:])
     a = ap.parse_args(argv)
     if a.cmd == "survey":
         run_survey(a.data)
     elif a.cmd == "labels":
         run_labels(a.data)
     elif a.cmd == "detect":
-        run_detect(a.data, a.synthetic, a.every, a.sigma_mm, a.seed)
+        if a.synthetic:
+            run_detect(a.data, True, a.every, a.sigma_mm, a.seed)
+        else:
+            run_detect_2d(a.data, a.model, a.gt_only)
     elif a.cmd == "faults":
         run_faults(a.data, a.synthetic, a.every, a.sigma_mm, a.seed)
 

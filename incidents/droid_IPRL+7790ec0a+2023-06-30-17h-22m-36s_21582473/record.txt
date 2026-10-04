@@ -1,0 +1,9 @@
+KINTRACE  recommission record, DROID IPRL Franka, camera 21582473
+================================================================
+Episode      : IPRL/success/2023-06-30/Fri_Jun_30_17:22:36_2023
+Checked at   : 2026-10-03 16:55:38
+What changed : camera off its calibration: residual 353.7 px over 55 frames (alarm 204.8 px)
+Fix          : camera position moved 344.1 mm (translation only, weakly constrained)
+Re-check     : residual 10.9 px, passes
+vs DROID     : configured pose was 284.7 mm / 16.06 deg from DROID's re-solved pose; after the fix the camera position is 186.4 mm from it
+STATUS: GO  (signed)
