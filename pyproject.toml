@@ -10,6 +10,8 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7", "cryptography>=
 rig = ["opencv-contrib-python-headless>=4.8,<5"]  # OpenCV 5 changes the aruco API and breaks the rig fit
 # kintrace import: LeRobot datasets, ROS bags / MCAP, UR RTDE; kintrace.droid: DROID episodes
 readers = ["rosbags>=0.9", "pandas>=2.0", "pyarrow>=14", "h5py>=3.8", "opencv-contrib-python-headless>=4.8,<5"]
+# kintrace.droid gripper detector (training, detect(), kintrace report). For a GPU, install torch from pytorch.org.
+detector = ["torch>=2.2", "torchvision>=0.17"]
 
 [project.scripts]
 kintrace = "kintrace.cli:main"
@@ -17,3 +19,6 @@ kintrace = "kintrace.cli:main"
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["kintrace*"]
